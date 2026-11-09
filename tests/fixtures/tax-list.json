@@ -1,0 +1,785 @@
+{
+  "total": 20,
+  "data": [
+    {
+      "id": 1,
+      "created": "2026-08-27 20:29:17.0",
+      "createdBy": "SYSTEM",
+      "lastUpdated": "2026-08-27 20:29:17.0",
+      "lastUpdatedBy": "SYSTEM",
+      "components": [
+        {
+          "id": 1,
+          "accountId": 33,
+          "code": "383",
+          "calcType": "NET",
+          "applyRule": "CREDIT",
+          "pos": 1,
+          "isInputTax": false
+        },
+        {
+          "id": 2,
+          "accountId": 34,
+          "code": "400",
+          "calcType": "NET",
+          "applyRule": "DEBIT",
+          "pos": 2,
+          "isInputTax": true
+        }
+      ],
+      "rates": [
+        {
+          "id": 1,
+          "dateValid": null,
+          "percentage": 8.1,
+          "percentageFlat": null
+        }
+      ],
+      "code": "BN1",
+      "description": "<values><de>Bezugsteuer mit Vorsteuer Normalsatz</de><en>Acquisition tax with input tax standard rate</en><fr>Impôt sur les acquisitions avec déduction de l'impôt préalable taux normal</fr><it>Imposta sull'acquisto con imposta precedente aliquota normale</it></values>",
+      "documentName": "<values><de>Bezugsteuer</de><en>Acq. tax</en><fr>Impôt acquis.</fr><it>Imposta acqu.</it></values>",
+      "accountDisplay": "2200, 1170",
+      "formCodes": "383, 400",
+      "currentPercentage": 8.1,
+      "currentPercentageFlat": null,
+      "inactive": false,
+      "displayTaxRate": true,
+      "isDisplayTaxRate": true,
+      "isInactive": false,
+      "isFlat": false
+    },
+    {
+      "id": 2,
+      "created": "2026-08-27 20:29:17.0",
+      "createdBy": "SYSTEM",
+      "lastUpdated": "2026-08-27 20:29:17.0",
+      "lastUpdatedBy": "SYSTEM",
+      "components": [
+        {
+          "id": 3,
+          "accountId": 33,
+          "code": "383",
+          "calcType": "NET",
+          "applyRule": "CREDIT",
+          "pos": 1,
+          "isInputTax": false
+        }
+      ],
+      "rates": [
+        {
+          "id": 2,
+          "dateValid": null,
+          "percentage": 8.1,
+          "percentageFlat": null
+        }
+      ],
+      "code": "BN2",
+      "description": "<values><de>Bezugsteuer ohne Vorsteuer Normalsatz</de><en>Acquisition tax without input tax standard rate</en><fr>Impôt sur les acquisitions sans déduction de l'impôt préalable taux normal</fr><it>Imposta sull'acquisto senza imposta precedente aliquota normale</it></values>",
+      "documentName": "<values><de>Bezugsteuer</de><en>Acq. tax</en><fr>Impôt acquis.</fr><it>Imposta acqu.</it></values>",
+      "accountDisplay": "2200",
+      "formCodes": "383",
+      "currentPercentage": 8.1,
+      "currentPercentageFlat": null,
+      "inactive": false,
+      "displayTaxRate": true,
+      "isDisplayTaxRate": true,
+      "isInactive": false,
+      "isFlat": false
+    },
+    {
+      "id": 3,
+      "created": "2026-08-27 20:29:17.0",
+      "createdBy": "SYSTEM",
+      "lastUpdated": "2026-08-27 20:29:17.0",
+      "lastUpdatedBy": "SYSTEM",
+      "components": [
+        {
+          "id": 4,
+          "accountId": 33,
+          "code": "383",
+          "calcType": "NET",
+          "applyRule": "CREDIT",
+          "pos": 1,
+          "isInputTax": false
+        },
+        {
+          "id": 5,
+          "accountId": 34,
+          "code": "400",
+          "calcType": "NET",
+          "applyRule": "DEBIT",
+          "pos": 2,
+          "isInputTax": true
+        }
+      ],
+      "rates": [
+        {
+          "id": 3,
+          "dateValid": null,
+          "percentage": 2.6,
+          "percentageFlat": null
+        }
+      ],
+      "code": "BR1",
+      "description": "<values><de>Bezugsteuer mit Vorsteuer Reduziert</de><en>Acquisition tax with input tax reduced rate</en><fr>Impôt sur les acquisitions avec déduction de l'impôt préalable taux réduit</fr><it>Imposta sull'acquisto con imposta precedente aliquota ridotta</it></values>",
+      "documentName": "<values><de>Bezugsteuer</de><en>Acq. tax</en><fr>Impôt acquis.</fr><it>Imposta acqu.</it></values>",
+      "accountDisplay": "2200, 1170",
+      "formCodes": "383, 400",
+      "currentPercentage": 2.6,
+      "currentPercentageFlat": null,
+      "inactive": false,
+      "displayTaxRate": true,
+      "isDisplayTaxRate": true,
+      "isInactive": false,
+      "isFlat": false
+    },
+    {
+      "id": 4,
+      "created": "2026-08-27 20:29:17.0",
+      "createdBy": "SYSTEM",
+      "lastUpdated": "2026-08-27 20:29:17.0",
+      "lastUpdatedBy": "SYSTEM",
+      "components": [
+        {
+          "id": 6,
+          "accountId": 33,
+          "code": "383",
+          "calcType": "NET",
+          "applyRule": "CREDIT",
+          "pos": 1,
+          "isInputTax": false
+        }
+      ],
+      "rates": [
+        {
+          "id": 4,
+          "dateValid": null,
+          "percentage": 2.6,
+          "percentageFlat": null
+        }
+      ],
+      "code": "BR2",
+      "description": "<values><de>Bezugsteuer ohne Vorsteuer Reduziert</de><en>Acquisition tax without input tax reduced rate</en><fr>Impôt sur les acquisitions sans déduction de l'impôt préalable taux réduit</fr><it>Imposta sull'acquisto senza imposta precedente aliquota ridotta</it></values>",
+      "documentName": "<values><de>Bezugsteuer</de><en>Acq. tax</en><fr>Impôt acquis.</fr><it>Imposta acqu.</it></values>",
+      "accountDisplay": "2200",
+      "formCodes": "383",
+      "currentPercentage": 2.6,
+      "currentPercentageFlat": null,
+      "inactive": false,
+      "displayTaxRate": true,
+      "isDisplayTaxRate": true,
+      "isInactive": false,
+      "isFlat": false
+    },
+    {
+      "id": 5,
+      "created": "2026-08-27 20:29:17.0",
+      "createdBy": "SYSTEM",
+      "lastUpdated": "2026-08-27 20:29:17.0",
+      "lastUpdatedBy": "SYSTEM",
+      "components": [
+        {
+          "id": 7,
+          "accountId": 33,
+          "code": "200,323",
+          "calcType": "NET",
+          "applyRule": "REVENUE",
+          "pos": 1,
+          "isInputTax": false
+        }
+      ],
+      "rates": [
+        {
+          "id": 5,
+          "dateValid": null,
+          "percentage": 8.1,
+          "percentageFlat": null
+        }
+      ],
+      "code": "SS1",
+      "description": "<values><de>Saldo-/Pauschalsteuersatz 1</de><en>Flat rate scheme 1</en><fr>Taux de la dette fiscale nette 1</fr><it>Aliquota saldo / forfettaria 1</it></values>",
+      "documentName": "<values><de>MwSt.</de><en>VAT</en><fr>TVA</fr><it>IVA</it></values>",
+      "accountDisplay": "2200",
+      "formCodes": "200, 323",
+      "currentPercentage": 8.1,
+      "currentPercentageFlat": null,
+      "inactive": false,
+      "displayTaxRate": true,
+      "isDisplayTaxRate": true,
+      "isInactive": false,
+      "isFlat": false
+    },
+    {
+      "id": 6,
+      "created": "2026-08-27 20:29:17.0",
+      "createdBy": "SYSTEM",
+      "lastUpdated": "2026-08-27 20:29:17.0",
+      "lastUpdatedBy": "SYSTEM",
+      "components": [
+        {
+          "id": 8,
+          "accountId": 33,
+          "code": "200,323",
+          "calcType": "NET",
+          "applyRule": "REVENUE",
+          "pos": 1,
+          "isInputTax": false
+        }
+      ],
+      "rates": [
+        {
+          "id": 6,
+          "dateValid": null,
+          "percentage": 8.1,
+          "percentageFlat": null
+        }
+      ],
+      "code": "SS2",
+      "description": "<values><de>Saldo-/Pauschalsteuersatz 2</de><en>Flat rate scheme 2</en><fr>Taux de la dette fiscale nette 2</fr><it>Aliquota saldo / forfettaria 2</it></values>",
+      "documentName": "<values><de>MwSt.</de><en>VAT</en><fr>TVA</fr><it>IVA</it></values>",
+      "accountDisplay": "2200",
+      "formCodes": "200, 323",
+      "currentPercentage": 8.1,
+      "currentPercentageFlat": null,
+      "inactive": false,
+      "displayTaxRate": true,
+      "isDisplayTaxRate": true,
+      "isInactive": false,
+      "isFlat": false
+    },
+    {
+      "id": 8,
+      "created": "2026-08-27 20:29:17.0",
+      "createdBy": "SYSTEM",
+      "lastUpdated": "2026-08-27 20:29:17.0",
+      "lastUpdatedBy": "SYSTEM",
+      "components": [
+        {
+          "id": 10,
+          "accountId": 33,
+          "code": "200,221",
+          "calcType": "NET",
+          "applyRule": "REVENUE",
+          "pos": 1,
+          "isInputTax": false
+        }
+      ],
+      "rates": [
+        {
+          "id": 8,
+          "dateValid": null,
+          "percentage": 0,
+          "percentageFlat": null
+        }
+      ],
+      "code": "U0A",
+      "description": "<values><de>Umsatzsteuer befreit Leistungen im Ausland</de><en>VAT exempt services abroad</en><fr>TVA exonérée prestations à l'étranger</fr><it>IVA esente prestazioni all'estero</it></values>",
+      "documentName": "<values><de>Steuerfrei</de><en>Tax exempt</en><fr>Exonéré</fr><it>Esente</it></values>",
+      "accountDisplay": "2200",
+      "formCodes": "200, 221",
+      "currentPercentage": 0,
+      "currentPercentageFlat": null,
+      "inactive": false,
+      "displayTaxRate": false,
+      "isDisplayTaxRate": false,
+      "isInactive": false,
+      "isFlat": false
+    },
+    {
+      "id": 7,
+      "created": "2026-08-27 20:29:17.0",
+      "createdBy": "SYSTEM",
+      "lastUpdated": "2026-08-27 20:29:17.0",
+      "lastUpdatedBy": "SYSTEM",
+      "components": [
+        {
+          "id": 9,
+          "accountId": 33,
+          "code": "200,220",
+          "calcType": "NET",
+          "applyRule": "REVENUE",
+          "pos": 1,
+          "isInputTax": false
+        }
+      ],
+      "rates": [
+        {
+          "id": 7,
+          "dateValid": null,
+          "percentage": 0,
+          "percentageFlat": null
+        }
+      ],
+      "code": "U0E",
+      "description": "<values><de>Umsatzsteuer befreit Export</de><en>VAT exempt export</en><fr>TVA exonérée exportation</fr><it>IVA esente esportazione</it></values>",
+      "documentName": "<values><de>Steuerfrei</de><en>Tax exempt</en><fr>Exonéré</fr><it>Esente</it></values>",
+      "accountDisplay": "2200",
+      "formCodes": "200, 220",
+      "currentPercentage": 0,
+      "currentPercentageFlat": null,
+      "inactive": false,
+      "displayTaxRate": false,
+      "isDisplayTaxRate": false,
+      "isInactive": false,
+      "isFlat": false
+    },
+    {
+      "id": 9,
+      "created": "2026-08-27 20:29:17.0",
+      "createdBy": "SYSTEM",
+      "lastUpdated": "2026-08-27 20:29:17.0",
+      "lastUpdatedBy": "SYSTEM",
+      "components": [
+        {
+          "id": 11,
+          "accountId": 33,
+          "code": "200,303",
+          "calcType": "NET",
+          "applyRule": "REVENUE",
+          "pos": 1,
+          "isInputTax": false
+        }
+      ],
+      "rates": [
+        {
+          "id": 9,
+          "dateValid": null,
+          "percentage": 8.1,
+          "percentageFlat": null
+        }
+      ],
+      "code": "UN1",
+      "description": "<values><de>Umsatzsteuer Normalsatz</de><en>VAT standard rate</en><fr>TVA taux normal</fr><it>IVA aliquota normale</it></values>",
+      "documentName": "<values><de>MwSt.</de><en>VAT</en><fr>TVA</fr><it>IVA</it></values>",
+      "accountDisplay": "2200",
+      "formCodes": "200, 303",
+      "currentPercentage": 8.1,
+      "currentPercentageFlat": null,
+      "inactive": false,
+      "displayTaxRate": true,
+      "isDisplayTaxRate": true,
+      "isInactive": false,
+      "isFlat": false
+    },
+    {
+      "id": 10,
+      "created": "2026-08-27 20:29:17.0",
+      "createdBy": "SYSTEM",
+      "lastUpdated": "2026-08-27 20:29:17.0",
+      "lastUpdatedBy": "SYSTEM",
+      "components": [
+        {
+          "id": 12,
+          "accountId": 33,
+          "code": "200,313",
+          "calcType": "NET",
+          "applyRule": "REVENUE",
+          "pos": 1,
+          "isInputTax": false
+        }
+      ],
+      "rates": [
+        {
+          "id": 10,
+          "dateValid": null,
+          "percentage": 2.6,
+          "percentageFlat": null
+        }
+      ],
+      "code": "UR1",
+      "description": "<values><de>Umsatzsteuer Reduziert</de><en>VAT reduced rate</en><fr>TVA taux réduit</fr><it>IVA aliquota ridotta</it></values>",
+      "documentName": "<values><de>MwSt.</de><en>VAT</en><fr>TVA</fr><it>IVA</it></values>",
+      "accountDisplay": "2200",
+      "formCodes": "200, 313",
+      "currentPercentage": 2.6,
+      "currentPercentageFlat": null,
+      "inactive": false,
+      "displayTaxRate": true,
+      "isDisplayTaxRate": true,
+      "isInactive": false,
+      "isFlat": false
+    },
+    {
+      "id": 11,
+      "created": "2026-08-27 20:29:17.0",
+      "createdBy": "SYSTEM",
+      "lastUpdated": "2026-08-27 20:29:17.0",
+      "lastUpdatedBy": "SYSTEM",
+      "components": [
+        {
+          "id": 13,
+          "accountId": 33,
+          "code": "200,343",
+          "calcType": "NET",
+          "applyRule": "REVENUE",
+          "pos": 1,
+          "isInputTax": false
+        }
+      ],
+      "rates": [
+        {
+          "id": 11,
+          "dateValid": null,
+          "percentage": 3.8,
+          "percentageFlat": null
+        }
+      ],
+      "code": "US1",
+      "description": "<values><de>Umsatzsteuer Sondersatz</de><en>VAT special rate</en><fr>TVA taux spécial</fr><it>IVA aliquota speciale</it></values>",
+      "documentName": "<values><de>MwSt.</de><en>VAT</en><fr>TVA</fr><it>IVA</it></values>",
+      "accountDisplay": "2200",
+      "formCodes": "200, 343",
+      "currentPercentage": 3.8,
+      "currentPercentageFlat": null,
+      "inactive": false,
+      "displayTaxRate": true,
+      "isDisplayTaxRate": true,
+      "isInactive": false,
+      "isFlat": false
+    },
+    {
+      "id": 12,
+      "created": "2026-08-27 20:29:17.0",
+      "createdBy": "SYSTEM",
+      "lastUpdated": "2026-08-27 20:29:17.0",
+      "lastUpdatedBy": "SYSTEM",
+      "components": [
+        {
+          "id": 14,
+          "accountId": 34,
+          "code": "400",
+          "calcType": "NET",
+          "applyRule": "EXPENSE",
+          "pos": 1,
+          "isInputTax": true
+        }
+      ],
+      "rates": [
+        {
+          "id": 12,
+          "dateValid": null,
+          "percentage": 0,
+          "percentageFlat": null
+        }
+      ],
+      "code": "V0I",
+      "description": "<values><de>Vorsteuer Import</de><en>Input tax import</en><fr>Impôt préalable importation</fr><it>Imposta precedente importazione</it></values>",
+      "documentName": "<values><de>Steuerfrei</de><en>Tax exempt</en><fr>Exonéré</fr><it>Esente</it></values>",
+      "accountDisplay": "1170",
+      "formCodes": "400",
+      "currentPercentage": 0,
+      "currentPercentageFlat": null,
+      "inactive": false,
+      "displayTaxRate": false,
+      "isDisplayTaxRate": false,
+      "isInactive": false,
+      "isFlat": false
+    },
+    {
+      "id": 13,
+      "created": "2026-08-27 20:29:17.0",
+      "createdBy": "SYSTEM",
+      "lastUpdated": "2026-08-27 20:29:17.0",
+      "lastUpdatedBy": "SYSTEM",
+      "components": [
+        {
+          "id": 15,
+          "accountId": 34,
+          "code": "400",
+          "calcType": "NET",
+          "applyRule": "EXPENSE",
+          "pos": 1,
+          "isInputTax": true
+        }
+      ],
+      "rates": [
+        {
+          "id": 13,
+          "dateValid": null,
+          "percentage": 8.1,
+          "percentageFlat": null
+        }
+      ],
+      "code": "VN1",
+      "description": "<values><de>Vorsteuer Material &amp; Dienstleistungen Normalsatz</de><en>Input tax materials &amp; services standard rate</en><fr>Impôt préalable matériel et prestations taux normal</fr><it>Imposta precedente materiale e servizi aliquota normale</it></values>",
+      "documentName": "<values><de>Vorsteuer</de><en>Input VAT</en><fr>TVA préalable</fr><it>IVA precedente</it></values>",
+      "accountDisplay": "1170",
+      "formCodes": "400",
+      "currentPercentage": 8.1,
+      "currentPercentageFlat": null,
+      "inactive": false,
+      "displayTaxRate": true,
+      "isDisplayTaxRate": true,
+      "isInactive": false,
+      "isFlat": false
+    },
+    {
+      "id": 14,
+      "created": "2026-08-27 20:29:17.0",
+      "createdBy": "SYSTEM",
+      "lastUpdated": "2026-08-27 20:29:17.0",
+      "lastUpdatedBy": "SYSTEM",
+      "components": [
+        {
+          "id": 16,
+          "accountId": 34,
+          "code": "405",
+          "calcType": "NET",
+          "applyRule": "EXPENSE",
+          "pos": 1,
+          "isInputTax": true
+        }
+      ],
+      "rates": [
+        {
+          "id": 14,
+          "dateValid": null,
+          "percentage": 8.1,
+          "percentageFlat": null
+        }
+      ],
+      "code": "VN2",
+      "description": "<values><de>Vorsteuer Invest. &amp; übr. Betriebsaufw. Normalsatz</de><en>Input tax investments &amp; other operating expenses standard rate</en><fr>Impôt préalable investissements et autres charges d'exploitation taux normal</fr><it>Imposta precedente investimenti e altre spese operative aliquota normale</it></values>",
+      "documentName": "<values><de>Vorsteuer</de><en>Input VAT</en><fr>TVA préalable</fr><it>IVA precedente</it></values>",
+      "accountDisplay": "1170",
+      "formCodes": "405",
+      "currentPercentage": 8.1,
+      "currentPercentageFlat": null,
+      "inactive": false,
+      "displayTaxRate": true,
+      "isDisplayTaxRate": true,
+      "isInactive": false,
+      "isFlat": false
+    },
+    {
+      "id": 15,
+      "created": "2026-08-27 20:29:17.0",
+      "createdBy": "SYSTEM",
+      "lastUpdated": "2026-08-27 20:29:17.0",
+      "lastUpdatedBy": "SYSTEM",
+      "components": [
+        {
+          "id": 17,
+          "accountId": 34,
+          "code": "400",
+          "calcType": "NET",
+          "applyRule": "EXPENSE",
+          "pos": 1,
+          "isInputTax": true
+        }
+      ],
+      "rates": [
+        {
+          "id": 15,
+          "dateValid": null,
+          "percentage": 2.6,
+          "percentageFlat": null
+        }
+      ],
+      "code": "VR1",
+      "description": "<values><de>Vorsteuer Material &amp; Dienstleistungen Reduziert</de><en>Input tax materials &amp; services reduced rate</en><fr>Impôt préalable matériel et prestations taux réduit</fr><it>Imposta precedente materiale e servizi aliquota ridotta</it></values>",
+      "documentName": "<values><de>Vorsteuer</de><en>Input VAT</en><fr>TVA préalable</fr><it>IVA precedente</it></values>",
+      "accountDisplay": "1170",
+      "formCodes": "400",
+      "currentPercentage": 2.6,
+      "currentPercentageFlat": null,
+      "inactive": false,
+      "displayTaxRate": true,
+      "isDisplayTaxRate": true,
+      "isInactive": false,
+      "isFlat": false
+    },
+    {
+      "id": 16,
+      "created": "2026-08-27 20:29:17.0",
+      "createdBy": "SYSTEM",
+      "lastUpdated": "2026-08-27 20:29:17.0",
+      "lastUpdatedBy": "SYSTEM",
+      "components": [
+        {
+          "id": 18,
+          "accountId": 34,
+          "code": "405",
+          "calcType": "NET",
+          "applyRule": "EXPENSE",
+          "pos": 1,
+          "isInputTax": true
+        }
+      ],
+      "rates": [
+        {
+          "id": 16,
+          "dateValid": null,
+          "percentage": 2.6,
+          "percentageFlat": null
+        }
+      ],
+      "code": "VR2",
+      "description": "<values><de>Vorsteuer Invest. &amp; übr. Betriebsaufw. Reduziert</de><en>Input tax investments &amp; other operating expenses reduced rate</en><fr>Impôt préalable investissements et autres charges d'exploitation taux réduit</fr><it>Imposta precedente investimenti e altre spese operative aliquota ridotta</it></values>",
+      "documentName": "<values><de>Vorsteuer</de><en>Input VAT</en><fr>TVA préalable</fr><it>IVA precedente</it></values>",
+      "accountDisplay": "1170",
+      "formCodes": "405",
+      "currentPercentage": 2.6,
+      "currentPercentageFlat": null,
+      "inactive": false,
+      "displayTaxRate": true,
+      "isDisplayTaxRate": true,
+      "isInactive": false,
+      "isFlat": false
+    },
+    {
+      "id": 17,
+      "created": "2026-08-27 20:29:17.0",
+      "createdBy": "SYSTEM",
+      "lastUpdated": "2026-08-27 20:29:17.0",
+      "lastUpdatedBy": "SYSTEM",
+      "components": [
+        {
+          "id": 19,
+          "accountId": 34,
+          "code": "400",
+          "calcType": "NET",
+          "applyRule": "EXPENSE",
+          "pos": 1,
+          "isInputTax": true
+        }
+      ],
+      "rates": [
+        {
+          "id": 17,
+          "dateValid": null,
+          "percentage": 3.8,
+          "percentageFlat": null
+        }
+      ],
+      "code": "VS1",
+      "description": "<values><de>Vorsteuer Material &amp; Dienstleistungen Sondersatz</de><en>Input tax materials &amp; services special rate</en><fr>Impôt préalable matériel et prestations taux spécial</fr><it>Imposta precedente materiale e servizi aliquota speciale</it></values>",
+      "documentName": "<values><de>Vorsteuer</de><en>Input VAT</en><fr>TVA préalable</fr><it>IVA precedente</it></values>",
+      "accountDisplay": "1170",
+      "formCodes": "400",
+      "currentPercentage": 3.8,
+      "currentPercentageFlat": null,
+      "inactive": false,
+      "displayTaxRate": true,
+      "isDisplayTaxRate": true,
+      "isInactive": false,
+      "isFlat": false
+    },
+    {
+      "id": 18,
+      "created": "2026-08-27 20:29:17.0",
+      "createdBy": "SYSTEM",
+      "lastUpdated": "2026-08-27 20:29:17.0",
+      "lastUpdatedBy": "SYSTEM",
+      "components": [
+        {
+          "id": 20,
+          "accountId": 34,
+          "code": "405",
+          "calcType": "NET",
+          "applyRule": "EXPENSE",
+          "pos": 1,
+          "isInputTax": true
+        }
+      ],
+      "rates": [
+        {
+          "id": 18,
+          "dateValid": null,
+          "percentage": 3.8,
+          "percentageFlat": null
+        }
+      ],
+      "code": "VS2",
+      "description": "<values><de>Vorsteuer Invest. &amp; übr. Betriebsaufw. Sondersatz</de><en>Input tax investments &amp; other operating expenses special rate</en><fr>Impôt préalable investissements et autres charges d'exploitation taux spécial</fr><it>Imposta precedente investimenti e altre spese operative aliquota speciale</it></values>",
+      "documentName": "<values><de>Vorsteuer</de><en>Input VAT</en><fr>TVA préalable</fr><it>IVA precedente</it></values>",
+      "accountDisplay": "1170",
+      "formCodes": "405",
+      "currentPercentage": 3.8,
+      "currentPercentageFlat": null,
+      "inactive": false,
+      "displayTaxRate": true,
+      "isDisplayTaxRate": true,
+      "isInactive": false,
+      "isFlat": false
+    },
+    {
+      "id": 19,
+      "created": "2026-08-27 20:29:17.0",
+      "createdBy": "SYSTEM",
+      "lastUpdated": "2026-08-27 20:29:17.0",
+      "lastUpdatedBy": "SYSTEM",
+      "components": [
+        {
+          "id": 21,
+          "accountId": 34,
+          "code": "400",
+          "calcType": "GROSS",
+          "applyRule": "EXPENSE",
+          "pos": 1,
+          "isInputTax": true
+        }
+      ],
+      "rates": [
+        {
+          "id": 19,
+          "dateValid": null,
+          "percentage": 100,
+          "percentageFlat": null
+        }
+      ],
+      "code": "VZ1",
+      "description": "<values><de>Zoll Material &amp; Dienstleistungen</de><en>Customs duties materials &amp; services</en><fr>Droits de douane matériel et prestations</fr><it>Dazi doganali materiale e servizi</it></values>",
+      "documentName": "<values><de>Vorsteuer</de><en>Input VAT</en><fr>TVA préalable</fr><it>IVA precedente</it></values>",
+      "accountDisplay": "1170",
+      "formCodes": "400",
+      "currentPercentage": 100,
+      "currentPercentageFlat": null,
+      "inactive": false,
+      "displayTaxRate": true,
+      "isDisplayTaxRate": true,
+      "isInactive": false,
+      "isFlat": false
+    },
+    {
+      "id": 20,
+      "created": "2026-08-27 20:29:17.0",
+      "createdBy": "SYSTEM",
+      "lastUpdated": "2026-08-27 20:29:17.0",
+      "lastUpdatedBy": "SYSTEM",
+      "components": [
+        {
+          "id": 22,
+          "accountId": 34,
+          "code": "405",
+          "calcType": "GROSS",
+          "applyRule": "EXPENSE",
+          "pos": 1,
+          "isInputTax": true
+        }
+      ],
+      "rates": [
+        {
+          "id": 20,
+          "dateValid": null,
+          "percentage": 100,
+          "percentageFlat": null
+        }
+      ],
+      "code": "VZ2",
+      "description": "<values><de>Zoll Invest. &amp; übr. Betriebsaufw.</de><en>Customs duties investments &amp; other operating expenses</en><fr>Droits de douane investissements et autres charges d'exploitation</fr><it>Dazi doganali investimenti e altre spese operative</it></values>",
+      "documentName": "<values><de>Vorsteuer</de><en>Input VAT</en><fr>TVA préalable</fr><it>IVA precedente</it></values>",
+      "accountDisplay": "1170",
+      "formCodes": "405",
+      "currentPercentage": 100,
+      "currentPercentageFlat": null,
+      "inactive": false,
+      "displayTaxRate": true,
+      "isDisplayTaxRate": true,
+      "isInactive": false,
+      "isFlat": false
+    }
+  ],
+  "summary": null,
+  "properties": {}
+}

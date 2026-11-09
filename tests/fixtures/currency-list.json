@@ -1,0 +1,26 @@
+{
+  "total": 3,
+  "data": [
+    {
+      "id": 1,
+      "code": "CHF",
+      "isDefault": true,
+      "isAuto": false,
+      "rate": 1
+    },
+    {
+      "id": 2,
+      "code": "EUR",
+      "isDefault": false,
+      "isAuto": true,
+      "rate": 0.928279
+    },
+    {
+      "id": 3,
+      "code": "USD",
+      "isDefault": false,
+      "isAuto": true,
+      "rate": 0.827895
+    }
+  ]
+}

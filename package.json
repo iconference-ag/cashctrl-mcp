@@ -1,0 +1,72 @@
+{
+  "name": "@iconference/cashctrl-mcp",
+  "version": "0.5.0",
+  "description": "Inoffizieller MCP-Server für CashCtrl: lesen frei, schreiben nur auf gesetzter Stufe und nach Vorschau mit Bestätigung",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "cashctrl",
+    "buchhaltung",
+    "accounting",
+    "claude",
+    "schweiz"
+  ],
+  "homepage": "https://github.com/iconference-ag/cashctrl-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/iconference-ag/cashctrl-mcp/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iconference-ag/cashctrl-mcp.git"
+  },
+  "author": {
+    "name": "iConference AG",
+    "email": "info@iconference.ch",
+    "url": "https://iconference.ch"
+  },
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "cashctrl-mcp": "dist/index.js"
+  },
+  "main": "dist/lib.js",
+  "types": "dist/lib.d.ts",
+  "//exports": "Genau ein Einstieg: die Werkzeugschicht aus lib.js. Ein Tiefpfad-Import von core waere das Sicherheitsmodell ohne Modus-Gate und ohne Token (Spec Abschnitt 4).",
+  "exports": {
+    ".": {
+      "types": "./dist/lib.d.ts",
+      "import": "./dist/lib.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "README.en.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22.12"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/index.ts",
+    "test": "vitest run tests/unit",
+    "test:live": "CASHCTRL_LIVE=1 vitest run tests/live",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "2.3.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "vitest": "^5.1.0"
+  }
+}

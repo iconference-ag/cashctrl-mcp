@@ -1,0 +1,35 @@
+{
+  "total": 1,
+  "data": [
+    {
+      "id": 1,
+      "created": "2026-08-27 21:09:59.0",
+      "createdBy": "API:GESCHWAERZT",
+      "lastUpdated": "2026-08-27 21:09:59.0",
+      "lastUpdatedBy": "API:GESCHWAERZT",
+      "accountId": 3,
+      "currencyId": null,
+      "currencyCode": "CHF",
+      "type": "DEFAULT",
+      "name": "Zuger Seeblick Privatbank – Kontokorrent CHF",
+      "accountName": "1020 <values><de>Bank</de><en>Bank account</en><fr>Compte courant</fr><it>Conto corrente</it></values>",
+      "iban": "GESCHWAERZT",
+      "qrIban": "GESCHWAERZT",
+      "qrFirstDigits": null,
+      "bic": "ZSPBCH2ZXXX",
+      "url": null,
+      "notes": "Fiktives Demo-Konto. Bank, IBAN, QR-IBAN und BIC sind erfunden; Clearing 99999/31999 nicht vergeben.",
+      "attachmentCount": 0,
+      "openingAmount": 185000,
+      "endAmount": 494472.2,
+      "defaultCurrencyOpeningAmount": 185000,
+      "defaultCurrencyEndAmount": 494472.2,
+      "inLocation": true,
+      "inactive": false,
+      "isInactive": false,
+      "isInLocation": true
+    }
+  ],
+  "summary": null,
+  "properties": {}
+}

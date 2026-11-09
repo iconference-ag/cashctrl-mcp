@@ -1,0 +1,63 @@
+{
+  "total": 7,
+  "data": [
+    {
+      "id": 1,
+      "created": "2026-08-27 20:29:17.0",
+      "createdBy": "SYSTEM",
+      "lastUpdated": "2026-08-27 20:29:17.0",
+      "lastUpdatedBy": "SYSTEM",
+      "name": "<values><de>Min.</de><en>min.</en><fr>min.</fr><it>min.</it></values>"
+    },
+    {
+      "id": 2,
+      "created": "2026-08-27 20:29:17.0",
+      "createdBy": "SYSTEM",
+      "lastUpdated": "2026-08-27 20:29:17.0",
+      "lastUpdatedBy": "SYSTEM",
+      "name": "<values><de>Std.</de><en>hrs.</en><fr>hrs.</fr><it>ore</it></values>"
+    },
+    {
+      "id": 3,
+      "created": "2026-08-27 20:29:17.0",
+      "createdBy": "SYSTEM",
+      "lastUpdated": "2026-08-27 20:29:17.0",
+      "lastUpdatedBy": "SYSTEM",
+      "name": "<values><de>Tage</de><en>days</en><fr>jours</fr><it>giorni</it></values>"
+    },
+    {
+      "id": 4,
+      "created": "2026-08-27 20:29:17.0",
+      "createdBy": "SYSTEM",
+      "lastUpdated": "2026-08-27 20:29:17.0",
+      "lastUpdatedBy": "SYSTEM",
+      "name": "<values><de>Stk.</de><en>pcs.</en><fr>pcs.</fr><it>pz.</it></values>"
+    },
+    {
+      "id": 5,
+      "created": "2026-08-27 20:29:17.0",
+      "createdBy": "SYSTEM",
+      "lastUpdated": "2026-08-27 20:29:17.0",
+      "lastUpdatedBy": "SYSTEM",
+      "name": "<values><de>Jahre</de><en>years</en><fr>années</fr><it>anni</it></values>"
+    },
+    {
+      "id": 1001,
+      "created": "2026-08-27 20:56:46.0",
+      "createdBy": "API:GESCHWAERZT",
+      "lastUpdated": "2026-08-27 20:56:46.0",
+      "lastUpdatedBy": "API:GESCHWAERZT",
+      "name": "m²"
+    },
+    {
+      "id": 1002,
+      "created": "2026-08-27 20:56:47.0",
+      "createdBy": "API:GESCHWAERZT",
+      "lastUpdated": "2026-08-27 20:56:47.0",
+      "lastUpdatedBy": "API:GESCHWAERZT",
+      "name": "Mt."
+    }
+  ],
+  "summary": null,
+  "properties": {}
+}
