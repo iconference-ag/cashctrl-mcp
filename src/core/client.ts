@@ -70,6 +70,11 @@ export class CashCtrlClient {
   apiGet(endpoint: string, params?: Record<string, unknown>) { return this.http.get<unknown>(endpoint, params); }
   apiGetRaw(endpointWithExt: string, params?: Record<string, unknown>) { return this.http.getRaw(endpointWithExt, params); }
   apiPost(endpoint: string, data: Record<string, unknown>) { return this.http.post<unknown>(endpoint, data); }
+  // Datei-Upload (0.6.0): file/prepare liefert fileId und writeUrl, file/persist haelt fest, order/update_attachments setzt die GANZE Anhangliste.
+  // `files` als JSON-Liste (encodeForm kodiert Objekte als JSON); `ids` und `fileIds` als CSV.
+  prepareFiles(files: { name: string; mimeType: string; size: number }[]) { return this.http.post<Raw>('file/prepare', { files }); }
+  persistFiles(ids: number[]) { return this.http.post('file/persist', { ids: csv(ids) }); }
+  updateOrderAttachments(d: { id: number; fileIds: number[] }) { return this.http.post('order/update_attachments', { id: d.id, fileIds: csv(d.fileIds) }); }
   createJournalEntry(d: { dateAdded: string; title: string; debitId: number; creditId: number; amount: number; taxId?: number; reference?: string; sequenceNumberId?: number; associateId?: number }) {
     return this.http.post<Created>('journal/create', d);
   }

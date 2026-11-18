@@ -11,17 +11,26 @@ export interface ErrorExtra {
   createdId?: number;
   /** Fester Grund der Abweisung (siehe ErrorReason). */
   reason?: ErrorReason;
+  /** Datei-Upload (0.6.0): Kennung der in CashCtrl angelegten Datei, sobald `file/prepare` sie geliefert hat. */
+  fileId?: number;
+  /** Datei-Upload (0.6.0): ist die Datei in CashCtrl festgehalten (`file/persist`)? `offen`, wenn der Ausgang unklar ist. */
+  festgehalten?: Festgehalten;
 }
+export type Festgehalten = 'ja' | 'nein' | 'offen';
 export class CashCtrlError extends Error {
   readonly sent?: boolean;
   readonly createdId?: number;
   readonly reason?: ErrorReason;
+  readonly fileId?: number;
+  readonly festgehalten?: Festgehalten;
   constructor(public readonly kind: ErrorKind, message: string, public readonly details?: unknown, extra?: ErrorExtra) {
     super(message);
     this.name = 'CashCtrlError';
     if (extra?.sent !== undefined) this.sent = extra.sent;
     if (extra?.createdId !== undefined) this.createdId = extra.createdId;
     if (extra?.reason !== undefined) this.reason = extra.reason;
+    if (extra?.fileId !== undefined) this.fileId = extra.fileId;
+    if (extra?.festgehalten !== undefined) this.festgehalten = extra.festgehalten;
   }
   /** Gleicher Fehler, aber mit bekannter Beleg-ID (der POST, der sie lieferte, hat CashCtrl erreicht: sent true). */
   withCreatedId(id: number, message = this.message): CashCtrlError {

@@ -2,6 +2,29 @@
 
 Daten im Format TT.MM.JJJJ. «Gemessen» heisst: gegen eine echte CashCtrl-Buchhaltung gelaufen und das Ergebnis in CashCtrl nachgelesen.
 
+## 0.6.0 (18.11.2026)
+
+Neu:
+
+- `prepare_file_upload` / `commit_file_upload` (Stufe `draft`) legen eine PDF-Datei (höchstens 10 MB) in der Dateiablage von CashCtrl ab und hängen sie auf Wunsch an einen Beleg (`anhaengenAn`). Der Inhalt kommt als Base64-Text (`inhalt`) oder als `Uint8Array` im eigenen Prozess; oder es wird die `fileId` einer schon festgehaltenen Datei nur noch angehängt. Ein Dateipfad wird nie angenommen. Die bisherigen Anhänge des Belegs bleiben (der Server liest die Liste vorher, CashCtrl ersetzt sie sonst ganz).
+- Die Upload-Adresse (`writeUrl`) von CashCtrl wird geprüft, bevor ein Byte hinausgeht: `https`, keine Benutzerangaben, Port leer oder 443, Host genau `objectstorage.<region>.oraclecloud.com` mit einer Region aus der neuen Konfiguration `uploadRegions` (Standard `["eu-zurich-1"]`; je Organisation oder global; Umgebung `CASHCTRL_UPLOAD_REGIONS`), Pfad beginnt mit `/p/`. Der PUT geht ohne `Authorization` (der Schlüssel erreicht den Objektspeicher nie), ohne Umleitung, mit eigener Zeitgrenze und ohne Drossel und Zähler von CashCtrl und gilt nur bei HTTP 200 und gleichem `opc-content-md5`. Die Adresse steht in keiner Antwort und keinem Fehlertext.
+- Katalogregel «eines von»: bei `person/create.json` und `person/update.json` genügt eines von `company`, `firstName`, `lastName`. Bisher meldete `prepare_api_write` «Pflichtparameter fehlen … firstName, lastName». Laut Doku von CashCtrl gilt «Either firstName, lastName or company must be set»; am Mandanten noch nicht gemessen. Die Regel liegt in `src/catalog/katalog.ts` (`EINES_VON`) und gilt allgemein; `api_catalog` zeigt sie als `einesVon`.
+- Über die Standardeingabe nimmt der Server Nachrichten bis 16 MiB (`src/transport.ts`): das SDK gäbe 10 MiB vor, damit blieben PDF über rund 7,8 MB als Base64 ohne Antwort. **Dateien über etwa 12 MB beenden die MCP-Verbindung über stdio, statt abgewiesen zu werden** (eine Nachricht über 16 MiB lässt das SDK den Transport schliessen; gemessen mit 17 MiB: Exit 0). Im eigenen Prozess gilt die Grenze von 10 MB sauber, mit Fehlermeldung.
+- Höchstens 3 gleichzeitig offene Upload-Vorschauen mit Datei (`inhalt`; eine mit blosser `fileId` zählt nicht) im eingebauten Token-Speicher, gemeinsam über alle Organisationen.
+- Speicher: Über stdio (Claude Desktop, `npx`) kann eine Datei von 10 MB den Speicher des Servers auf rund 1 GB treiben (gemessen 854 bis 1048 MiB RSS für eine einzige Vorschau); im eigenen Prozess rund 144 bis 184 MiB. Die Ursache über stdio ist nicht gemessen (vermutlich der Lesepuffer des SDK).
+- Kennungen einer fremden `fetch`-Ausnahme (`code`, `cause.code`, `name`) kommen nur über eine Positivliste in die Fehlermeldung des Uploads, sonst «unbekannt». `uploadRegions` wird auch bei einem Config-Objekt aus dem Code geprüft. Bei der Regel «eines von» gilt ein Wert nur aus Leerzeichen als nicht gesetzt.
+- Mit `anhaengenAn` liest `commit_file_upload` den Beleg vor `file/prepare`: ist er unbekannt oder seine Anhangliste nicht lesbar, wird nichts hochgeladen.
+- Fehler nach `file/prepare` tragen in `structuredContent` zusätzlich `fileId` und `festgehalten` (`ja`, `nein`, `offen`).
+- `prepare_api_write` weist `file/prepare.json` ab: die Antwort trüge die Upload-Adresse ins Modell. Für Uploads `prepare_file_upload`.
+- Werkzeugzahlen ohne Schalter: 17 im Modus `read`, 25 in `draft`, 35 in `full`.
+
+Gemessen (18.11.2026, Demo-Mandant): der Ablauf in CashCtrl (`file/prepare`, PUT in den Objektspeicher mit 200 und `opc-content-md5`, `file/persist`, `order/update_attachments`). Das Werkzeug selbst läuft nur gegen Attrappen und ist am Mandanten nicht gemessen. Der PUT mit dem echten `fetch` ist gegen einen lokalen Testserver geprüft (Node 24.22.1), nicht gegen den Objektspeicher.
+
+Grenzen:
+
+- Bis zum `commit_file_upload` liegt die Datei als Base64-Text im Token-Speicher (bei 10 MB rund 14 MB Text je offener Vorschau, 10 Minuten). Abgelaufenes räumt erst die nächste Vorschau weg; es sind höchstens 3 Vorschauen gleichzeitig offen.
+- Scheitert das Festhalten oder das Anhängen, nennt die Fehlermeldung die `fileId`. Eine nicht festgehaltene Datei löscht CashCtrl nach 4 Stunden; das Werkzeug löscht nichts.
+
 ## 0.5.0 (09.11.2026)
 
 Neu:

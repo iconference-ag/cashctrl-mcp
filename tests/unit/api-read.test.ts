@@ -49,6 +49,13 @@ describe('api_catalog', () => {
     expect(s.areas).toEqual(expect.arrayContaining(['person', 'order', 'salary', 'journal']));
     expect(e.calls).toHaveLength(0);
   });
+  it('0.6.0: mit path zeigt der Eintrag von person/create.json die Gruppe einesVon und keinen der drei als Pflicht', async () => {
+    const s = (await toolset([NT]).call('api_catalog', { path: 'person/create.json' })).structuredContent as { einesVon?: string[][]; params: { name: string; required: boolean }[] };
+    expect(s.einesVon).toEqual([['company', 'firstName', 'lastName']]);
+    expect(s.params.filter((p) => p.required)).toEqual([]);
+    const u = (await toolset([NT]).call('api_catalog', { path: 'person/read.json' })).structuredContent as { einesVon?: unknown };
+    expect(u.einesVon).toBeUndefined();
+  });
   it('query und area filtern; kind und gate je Treffer aus dem Katalog', async () => {
     const t = toolset([NT]);
     const r = await t.call('api_catalog', { query: 'delete title', area: 'person' });

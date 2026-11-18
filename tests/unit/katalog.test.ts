@@ -126,6 +126,40 @@ describe('Katalog: Suche und Parameterpruefung', () => {
   });
 });
 
+describe('Katalog: Regel «eines von» (0.6.0)', () => {
+  const create = endpunktFinden('person/create.json')!;
+  const update = endpunktFinden('person/update.json')!;
+  it('person/create und person/update: company, firstName, lastName sind einzeln nicht mehr Pflicht, eines davon genuegt', () => {
+    expect(paramsPruefen(create, { company: 'Muster AG' })).toEqual({ company: 'Muster AG' });
+    expect(paramsPruefen(create, { firstName: 'Anna' })).toEqual({ firstName: 'Anna' });
+    expect(paramsPruefen(create, { lastName: 'Muster' })).toEqual({ lastName: 'Muster' });
+    expect(paramsPruefen(update, { id: 7, company: 'Muster AG' })).toEqual({ id: 7, company: 'Muster AG' });
+  });
+  it('keines der drei (auch leer oder null) wird abgewiesen und die Meldung nennt die Gruppe', () => {
+    expect(() => paramsPruefen(create, {})).toThrow(/mindestens eines von company, firstName, lastName/);
+    expect(() => paramsPruefen(create, { company: '', firstName: null })).toThrow(/mindestens eines von company, firstName, lastName/);
+    expect(() => paramsPruefen(update, { company: 'X' })).toThrow(/Pflichtparameter fehlen.*id/);
+    expect(() => paramsPruefen(update, { id: 7 })).toThrow(/mindestens eines von company, firstName, lastName/);
+  });
+  it('G9: ein Wert nur aus Leerzeichen gilt in der Gruppe als nicht gesetzt', () => {
+    expect(() => paramsPruefen(create, { company: '   ' })).toThrow(/mindestens eines von/);
+    expect(() => paramsPruefen(create, { company: ' \t\n ', firstName: '  ' })).toThrow(/mindestens eines von/);
+    expect(paramsPruefen(create, { company: '   ', firstName: 'Anna' })).toEqual({ company: '   ', firstName: 'Anna' });
+    expect(paramsPruefen(create, { company: ' Muster AG ' })).toEqual({ company: ' Muster AG ' });
+  });
+  it('der Katalogeintrag, den api_catalog zeigt, fuehrt die Gruppe und keine der drei als Pflicht; das erzeugte JSON bleibt unveraendert', () => {
+    expect(create.einesVon).toEqual([['company', 'firstName', 'lastName']]);
+    expect(create.params.filter((p) => p.required)).toEqual([]);
+    expect(update.params.filter((p) => p.required).map((p) => p.name)).toEqual(['id']);
+    const roh = KATALOG.endpunkte.find((x) => x.path === 'person/create.json')!;
+    expect(roh.params.filter((p) => p.required).map((p) => p.name)).toEqual(['company', 'firstName', 'lastName']);
+    expect(Object.keys(roh).sort()).toEqual(['area', 'method', 'params', 'path', 'title']);
+  });
+  it('andere Endpunkte haben keine Gruppe', () => {
+    expect(endpunktFinden('person/read.json')!.einesVon).toBeUndefined();
+  });
+});
+
 describe('scripts/katalog.ts: Generator', () => {
   const html = (inner: string) => `<section class="controller"><section class="action">${inner}</section></section>`;
   const abschnitt = (pfad: string, methode: string, titel: string, tabelle: string) => `

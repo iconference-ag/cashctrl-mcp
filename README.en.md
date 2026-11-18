@@ -11,7 +11,7 @@ confirmation. It runs locally on your machine, the API key never leaves it, noth
 
 ## Status
 
-Version 0.5.0 of 9 November 2026. What changed in each version is in the [changelog](CHANGELOG.md) (German).
+Version 0.6.0 of 18 November 2026. What changed in each version is in the [changelog](CHANGELOG.md) (German).
 
 "Measured" in this document means: run against a real CashCtrl ledger and the result read back in
 CashCtrl. What is only tested against recorded responses is listed as unverified under
@@ -61,7 +61,7 @@ Five barriers, in this order:
 5. **Role of the API user.** In CashCtrl the API user gets the role that matches the level.
    This is the one barrier on CashCtrl's server; all others sit on your machine.
 
-On top of that: the key never appears in tool output, error messages or logs. A local monthly
+On top of that: the key never appears in tool output, error messages or logs. When a PDF is uploaded (`commit_file_upload`) the content goes to the object storage of CashCtrl (Oracle Cloud), never the key: the upload address is checked first against the regions in the configuration, there is no redirect, and the address appears in no output. A local monthly
 counter warns at 80 percent of the quota and refuses further calls at 100 percent, so CashCtrl
 does not lock the account.
 
@@ -134,6 +134,7 @@ warning in the log.
   (paths ending in `/delete.json`), in mode `full`. It does not replace `deleteOrders` and does not relax its
   unbooked-documents-only rule: `delete_order` stays the safe route for documents.
 - Mail endpoints of the general tools (paths ending in `/mail.json`) need the existing switch `sendMail`.
+- `uploadRegions` (optional, default `["eu-zurich-1"]`) lists the regions of the Oracle object storage that `commit_file_upload` may upload to: exactly the host `objectstorage.<region>.oraclecloud.com` is allowed. The field sits per organisation or once at the top level of the file for all; the entry on the organisation wins over the global one. A region consists of lowercase letters, digits and hyphen (`eu-zurich-1`), otherwise the server does not start. If CashCtrl points to another region (your tenant lives elsewhere), `commit_file_upload` refuses before a single byte leaves: enter the region here.
 - Several organisations are supported (fiduciaries). With exactly one, the `org` parameter is
   optional on every tool.
 
@@ -142,7 +143,7 @@ A single-organisation setup also works without a file, through
 `CASHCTRL_SEND_MAIL` (`1` enables sending documents, otherwise it stays off) and
 `CASHCTRL_DELETE_ORDERS` (`1` enables deleting unbooked documents, otherwise it stays off),
 `CASHCTRL_SALARY` (`1` enables the payroll endpoints) and `CASHCTRL_DELETE_RECORDS` (`1` enables general
-deletion). Either the file or the environment variables: setting both is a startup error with a clear message.
+deletion) and `CASHCTRL_UPLOAD_REGIONS` (comma-separated, e.g. `eu-zurich-1,eu-frankfurt-1`). Either the file or the environment variables: setting both is a startup error with a clear message.
 
 The entry in Claude Desktop is described step by step in
 [`docs/anleitung-claude-desktop.md`](docs/anleitung-claude-desktop.md) (German).
@@ -172,9 +173,9 @@ switches only open the respective class of endpoints.
 
 ## Tools
 
-33 tools by default (mode `full`), 2 more each with the opt-in `sendMail` (sending documents) and the opt-in
-`deleteOrders` (deleting unbooked documents), 37 with both. The switches `salary` and `deleteRecords` do not
-change the count (they open endpoints of the general tools). In mode `read` there are 17 tools, in `draft` 23.
+35 tools by default (mode `full`), 2 more each with the opt-in `sendMail` (sending documents) and the opt-in
+`deleteOrders` (deleting unbooked documents), 39 with both. The switches `salary` and `deleteRecords` do not
+change the count (they open endpoints of the general tools). In mode `read` there are 17 tools, in `draft` 25.
 Each takes an optional `org`; with exactly one organisation the parameter can be omitted.
 
 ### Level `read` (17)
@@ -199,13 +200,14 @@ Each takes an optional `org`; with exactly one organisation the parameter can be
 | `api_catalog` | searches the built-in catalogue of the CashCtrl API (376 endpoints) by path and parameters, no network call |
 | `api_read` | reads through any GET endpoint of the catalogue (measured live on 24 October 2026 (11 cases on the demo tenant: JSON, text without extension, CSV as text, Excel and PDF as files, truncation, switches and rejections without a network call)); payroll only with `salary` |
 
-### Level `draft` (6 more)
+### Level `draft` (8 more)
 
 | Tool pair | Purpose |
 |---|---|
 | `prepare_contact` / `commit_contact` | create a contact (also with a note, `notes`), the preview warns about similar contacts |
 | `prepare_article` / `commit_article` | create an article; the article number is required (without it CashCtrl rejects the article, measured 9 November 2026), the unit is resolved and never created anew |
 | `prepare_order_draft` / `commit_order_draft` | create an offer, order confirmation, invoice or purchase invoice **as a draft** |
+| `prepare_file_upload` / `commit_file_upload` | put a PDF (at most 10 MB) into the CashCtrl file storage and, on request, attach it to a document; details below (0.6.0) |
 
 ### Level `full` (10 more, plus 2 further each with the opt-ins `sendMail` and `deleteOrders`)
 
@@ -218,6 +220,36 @@ Each takes an optional `org`; with exactly one organisation the parameter can be
 | `prepare_send_order` / `commit_send_order` | send a document through the CashCtrl document mailer, only with `sendMail` (see Configuration) |
 | `prepare_delete_order` / `commit_delete_order` | delete an unbooked document for good, only with `deleteOrders`; the server refuses booked documents, also when they were booked between preview and execution |
 | `prepare_api_write` / `commit_api_write` | writes through any POST endpoint of the catalogue (experimental, measured on the tenant are only four delete endpoints); deleting only with `deleteRecords`, payroll only with `salary`, mail only with `sendMail` |
+
+### Upload a PDF and attach it (0.6.0)
+
+`prepare_file_upload` / `commit_file_upload` put a PDF file into the CashCtrl file storage and, on request, attach it to a
+document. Level `draft`: the tool books nothing and deletes nothing; it adds a file and, with `anhaengenAn`, an attachment on an
+existing document (also a booked one).
+
+- Input: `name` (file name without `/` and `\`, no control characters, not `.` and not `..`, at most 255 characters), `inhalt` (the content of the file
+  as base64 text; in your own process through `createToolset(...).call` also a `Uint8Array`) **or** `fileId` of an already
+  persisted file (then it only attaches, nothing is uploaded), `mimeType` (only `application/pdf`), optional
+  `anhaengenAn: { art: "order", id }`. **The tool never accepts a file path**; there is no input field for one, and a value
+  that looks like a path is refused. Checked: valid base64, at most 10 MB (10 × 1024 × 1024 bytes), the first bytes are `%PDF-`.
+- `prepare_file_upload` does not call CashCtrl. The preview shows name, size, SHA-256 and target.
+- `commit_file_upload` runs in this order: `file/prepare`; check the `writeUrl` (scheme `https`, no user info, port empty or
+  443, host exactly `objectstorage.<region>.oraclecloud.com` with a region from `uploadRegions`, path starts with `/p/`;
+  otherwise abort without an upload); PUT of the bytes without `Authorization`, without redirects, with its own time limit of 120 seconds and outside
+  the throttle and counter of CashCtrl, success only on HTTP 200 and an equal `opc-content-md5`; `file/persist`; with
+  `anhaengenAn` `order/read` and `order/update_attachments` with the existing attachments plus the new file (CashCtrl replaces
+  the whole list, so the server reads it first; if the list is not clearly readable it sends nothing).
+- With `anhaengenAn`, `commit_file_upload` reads the document before `file/prepare`: if it does not exist or its attachment list is not readable, the call ends without an upload. Attaching then reads the list afresh.
+- The `writeUrl` never leaves the server: it appears in no response, no error message and no log (at most the host name). An
+  upload that is not persisted is deleted by CashCtrl after 4 hours; the tool itself deletes nothing.
+- Errors after `file/prepare` also carry `fileId` and `festgehalten` (`ja`, `nein` or `offen`; `offen` when the outcome of `file/persist` is unclear) in `structuredContent`. When merely attaching with `fileId`, only `fileId` is present. Success names `fileId`, `name`, `bytes`, `sha256`, `festgehalten: true`, `angehaengt`, and with a target `beleg` and `fileIds`; when merely attaching with `fileId` only `fileId`, `angehaengt`, `beleg` and `fileIds` (no `festgehalten`: the tool does not check it there). If attaching fails after persisting, the error message also names the `fileId`. Then call `prepare_file_upload` with `fileId` and
+  `anhaengenAn`: it only attaches and creates no second file.
+- **Memory:** until `commit_*` the file sits in the token store as base64 text, about 14 MB of text (13.3 MiB) per open preview at 10 MB (10 × 1024 × 1024 bytes). The token is valid for 10 minutes; expired entries are only swept by the
+  next preview; at most 3 previews are open at the same time (see below).
+- **Size:** In your own process (`createToolset(...).call`) the limit of 10 MB applies cleanly: above it you get an error message. Over standard input (MCP) the server accepts messages up to 16 MiB (base64 of 10 MiB plus JSON; the SDK default of 10 MiB would leave PDFs over about 7.8 MB without a response). **Files over about 12 MB end the MCP connection over stdio instead of being refused:** for a message over 16 MiB the SDK closes the transport (measured with 17 MiB: the server exits with code 0). A file between 10 and 12 MB is refused by the server with an error message.
+- **Open previews:** The built-in token store holds at most 3 upload previews with a file (`inhalt`; a preview with a bare `fileId` does not count) open at the same time, shared across all organisations; a fourth is refused ("Zu viele offene Upload-Vorschauen; erst ausführen oder 10 Minuten warten."). Expired ones are swept first. Measured in your own process with a 10 MiB file (Node 24.22.1, test double for `fetch`): process memory 72 MiB before prepare, 116 MiB after, 144 MiB after commit (also the peak); 184 MiB in another run by the reviewer. **Over stdio (Claude Desktop, `npx`) a 10 MB file can drive the server's memory to about 1 GB (measured 854 to 1048 MiB RSS for a single preview, on `dist/index.js`); in your own process about 144 to 184 MiB.** The cause over stdio is not measured (presumably the read buffer of the SDK).
+- **Limits of the check:** The host check does not tell Oracle customers apart; it only protects against hosts outside `objectstorage.<region>.oraclecloud.com`. Between `order/read` and `order/update_attachments` an attachment set at the same time can be lost; CashCtrl has no conditional write. Anyone who passes their own `fetchImpl` to the toolset sees the `writeUrl` in plain text and must not log it.
+- The flow in CashCtrl was measured (demo tenant, 18 November 2026); the tool itself only against test doubles.
 
 ### General tools (0.4.0, experimental)
 
@@ -243,6 +275,8 @@ route is for the rest.
   check by the server for rounding, tax and duplicates, not measured on the tenant). For deletion, "Löschen ist
   unumkehrbar." (deleting is irreversible) is added.
 - For CSV parameters (`ids`, `orderIds` …) the model may pass a list; the server joins it with commas.
+- "One of" rule (0.6.0): for `person/create.json` and `person/update.json` one of `company`, `firstName`, `lastName` is enough. According to CashCtrl's documentation "Either firstName, lastName or company must be set"; not yet measured on the tenant. `api_catalog` shows it as `einesVon`.
+- The general write path refuses `file/prepare.json` (0.6.0): its response would carry the upload address into the model. Use `prepare_file_upload` for uploads.
 
 On failure the response carries `structuredContent` next to the text: `kind` (type of error),
 for write calls `sent` (the request may have reached CashCtrl; `true` when in doubt), after
@@ -285,7 +319,7 @@ the currency of the tenant applies; CashCtrl sets exchange rates itself.
 - **Negative total:** allowed. CashCtrl accepted a document with total −100 on the demo tenant (17 October 2026); since 0.3.0 the server
   no longer rejects it. Whether that is a credit note in accounting terms is for the human to decide.
 - **Not included as specialised tools:** deletion other than unbooked documents with `deleteOrders`, payroll, fixed assets, closing
-  or reopening a fiscal year, report endpoints, imports, file storage, settings. Since 0.4.0 they are reachable through the
+  or reopening a fiscal year, report endpoints, imports, file storage (except the PDF upload since 0.6.0), settings. Since 0.4.0 they are reachable through the
   general tools (experimental; only four delete endpoints are measured on the tenant, see
   [Development](#development)), deleting only with `deleteRecords`, payroll only
   with `salary`. `file/empty_archive.json` (empties the file archive for good) also counts as deleting. Closing and reopening a fiscal year
@@ -326,6 +360,8 @@ Swiss SME chart of accounts; the assumptions are stated at the top of the test f
 final payment (9 November 2026). **`send_order` is unverified:** our demo tenant does not allow sending documents, the
 tool runs only under unit tests against recorded responses. Anyone who uses it checks the result in
 CashCtrl.
+
+**`file_upload` is unverified** (0.6.0): the flow in CashCtrl was measured on 18 November 2026 on the demo tenant, the tool itself only runs under unit tests against test doubles. The PUT with the real `fetch` was checked against a local test server (Node 24.22.1: no `Authorization`, no `Content-Type`, `Content-Length` set, a 302 is not followed), not against the object storage.
 
 Of the general write path (`prepare_api_write` / `commit_api_write`) four delete endpoints are measured
 (`inventory/article/delete`, `journal/delete`, `person/delete`, `order/bookentry/delete`, 9 November 2026). All

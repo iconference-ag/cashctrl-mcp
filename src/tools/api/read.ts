@@ -28,7 +28,7 @@ export async function catalogTool(a: { query?: string; area?: string; path?: str
     if (a.path !== undefined && a.path.trim() !== '') {
       const e = endpunktFinden(a.path);
       if (!e) throw BEKANNT_NICHT(a.path);
-      return ok({ ...kurz(e), area: e.area, params: e.params });
+      return ok({ ...kurz(e), area: e.area, params: e.params, ...(e.einesVon ? { einesVon: e.einesVon } : {}) });
     }
     const worte = (a.query ?? '').toLowerCase().split(/\s+/).filter(Boolean);
     const area = a.area?.trim().toLowerCase();

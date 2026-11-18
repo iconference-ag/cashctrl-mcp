@@ -48,7 +48,7 @@ function makeEnv() {
 
 const usageFile = join(tmpdir(), `cashctrl-usage-${process.pid}-prepare.json`);
 // sendMail und deleteOrders: true, sonst fehlen prepare_send_order und prepare_delete_order im
-// Werkzeugset — dieser Test prueft alle zehn (0.4.0: prepare_api_write dazu).
+// Werkzeugset — dieser Test prueft alle elf (0.4.0: prepare_api_write dazu; 0.6.0: prepare_file_upload).
 const cfg: Config = { mode: 'full', pdfDir: '/tmp/x', usageFile, source: 'env', orgs: [{ name: 'nt', subdomain: 'd', 'apiKey': 'k', sendMail: true, deleteOrders: true }] };
 afterAll(async () => { await rm(usageFile, { force: true }); });
 
@@ -65,6 +65,8 @@ const faelle: [string, Record<string, unknown>][] = [
   ['prepare_delete_order', { orderId: 55 }],
   // 0.4.0: der allgemeine Schreibweg; die Zusage gilt dort genauso (prepare ruft CashCtrl gar nicht auf).
   ['prepare_api_write', { path: 'person/title/create.json', params: { name: 'MCP-TEST Titel' } }],
+  // 0.6.0: Datei hochladen; prepare ruft CashCtrl und den Objektspeicher nicht auf.
+  ['prepare_file_upload', { name: 'MCP-TEST.pdf', inhalt: Buffer.from('%PDF-1.4\n%%EOF\n').toString('base64'), anhaengenAn: { art: 'order', id: 55 } }],
 ];
 /** Weitere Wege durch ein schon genanntes prepare_: Kopie aus einem Quellbeleg. */
 const zusatzWege: [string, Record<string, unknown>][] = [
@@ -72,12 +74,12 @@ const zusatzWege: [string, Record<string, unknown>][] = [
 ];
 
 describe('prepare_* schreibt nichts (B5)', () => {
-  it('das Werkzeugset im Modus full kennt genau diese zehn prepare_*', () => {
+  it('das Werkzeugset im Modus full kennt genau diese elf prepare_*', () => {
     const namen = createToolset(cfg, { fetchImpl: makeEnv().fetchImpl }).names();
     expect(namen.filter((n) => n.startsWith('prepare_')).sort()).toEqual(faelle.map(([n]) => n).sort());
   });
 
-  it('kein einziger POST ueber alle zehn prepare_* (und den Kopierweg) hinweg', async () => {
+  it('kein einziger POST ueber alle elf prepare_* (und den Kopierweg) hinweg', async () => {
     const { posts, fetchImpl } = makeEnv();
     const t = createToolset(cfg, { fetchImpl });
     for (const [name, args] of [...faelle, ...zusatzWege]) {

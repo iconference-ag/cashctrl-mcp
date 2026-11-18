@@ -28,6 +28,8 @@ const WARNUNG = 'Allgemeiner Schreibweg: keine Fachprüfung des Servers (Rundung
 function pruefen(c: ToolContext, org: string, path: string) {
   const e = endpunktFinden(path);
   if (!e) throw new CashCtrlError('validation', `Pfad nicht im Katalog: ${path}. Mit api_catalog (query oder area) suchen.`);
+  // 0.6.0: die Antwort von file/prepare traegt die writeUrl (Einmal-Adresse zum Schreiben in den Objektspeicher); sie darf nicht ins Modell.
+  if (e.path === 'file/prepare.json') throw new CashCtrlError('validation', 'file/prepare.json ist über den allgemeinen Schreibweg nicht erlaubt: die Antwort enthält die Upload-Adresse. Für Uploads prepare_file_upload verwenden.');
   if (e.method !== 'POST') throw new CashCtrlError('validation', `${e.path} liest nur (GET). Lesen geht über api_read; prepare_api_write ist für POST-Endpunkte.`);
   const ein = einordnen(e);
   pruefeSchalter(c, org, ein.gates);

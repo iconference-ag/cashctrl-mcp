@@ -83,3 +83,12 @@ Der Belegversand lässt sich am Demo-Mandanten nicht messen, CashCtrl verweigert
 - `order/document/mail`: Pflicht sind `orderIds` (CSV), `mailFrom`, `mailSubject`, `mailText`; optional `mailTo` (leer = Standardadresse des Kontakts), `mailCc`, `mailBcc`, `isCopyToMe`, `sentStatusId`. Es gibt kein `id` und kein `subject`/`message` (aus der Doku gelesen 28.08.2026).
 - Absender: `mailFrom` ist Pflicht. Der Server nimmt als Standard die `email` des Standorts vom `type` `MAIN` aus `location/list`, mit dem ersten Standort als Rückfall; `from` an `prepare_send_order` überschreibt ihn (gemessen 28.08.2026).
 - Versandstatus: Welchen Status ein Beleg nach `order/document/mail` bekommt, steht im Kategorie-Kopf als `sentStatusId` und nicht in `status[]` (Offerte: «Offen», Zahlungserinnerung: «Versandt»). Der Server fällt zurück auf die Statusnamen «Versandt», dann «Gesendet»; kennt die Kategorie keinen, bleibt der Status stehen und der Server warnt (gemessen 28.08.2026).
+
+## Datei-Upload (gemessen 18.11.2026)
+
+Eine Datei kommt in vier Schritten in CashCtrl und an einen Beleg. Der Ablauf ist am Demo-Mandanten gemessen; der MCP-Server setzt ihn mit `prepare_file_upload` / `commit_file_upload` um.
+
+1. `file/prepare` mit `files` (JSON-Liste mit `name`, `mimeType`, `size`) liefert je Datei `fileId`, `writeUrl`, `name` und `mimeType`. Die `writeUrl` ist eine Einmal-Adresse zum Schreiben in den Objektspeicher von Oracle: Host `objectstorage.eu-zurich-1.oraclecloud.com`, Pfad beginnt mit `/p/` und trägt ein Token. Sie gehört nicht in Protokolle oder Antworten.
+2. `PUT` der Bytes auf die `writeUrl`, ohne `Authorization` und ohne `Content-Type`, nur mit `Content-Length`: Antwort `200` mit leerem Körper und dem Kopf `opc-content-md5` (MD5 der Bytes, Base64). Der API-Schlüssel gehört nicht an diesen Host.
+3. `file/persist` mit `ids` (CSV der `fileId`) hält die Datei fest. Eine nicht festgehaltene Datei löscht CashCtrl laut Doku nach 4 Stunden.
+4. `order/update_attachments` mit `id` (Beleg) und `fileIds` (CSV) setzt die GANZE Anhangliste des Belegs; laut Doku entfernt eine leere Liste alle Anhänge. Wer anhängen will, liest vorher `order/read` (`data.attachments[].fileId`) und sendet die bisherigen Kennungen plus die neue. Der Aufruf ändert `lastUpdated` des Belegs.

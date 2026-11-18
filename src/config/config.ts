@@ -6,10 +6,24 @@ import { z } from 'zod';
 export type Mode = 'read' | 'draft' | 'full';
 /** `sendMail` optional statt Pflichtfeld: rund zwanzig Testdateien bauen `Config`-Literale ohne
  * Belegversand-Bezug — ein Pflichtfeld haette dort ueberall eine wirkungslose Ergaenzung erzwungen. */
-export interface OrgConfig { name: string; subdomain: string; apiKey: string; sendMail?: boolean; deleteOrders?: boolean; salary?: boolean; deleteRecords?: boolean }
-export interface Config { mode: Mode; pdfDir: string; usageFile: string; orgs: OrgConfig[]; source: 'file' | 'env' }
+export interface OrgConfig { name: string; subdomain: string; apiKey: string; sendMail?: boolean; deleteOrders?: boolean; salary?: boolean; deleteRecords?: boolean; uploadRegions?: string[] }
+/** `uploadRegions` (0.6.0): Regionen des Oracle-Objektspeichers, zu denen `commit_file_upload` hochladen darf; je Organisation, sonst hier fuer alle, sonst `["eu-zurich-1"]`. */
+export interface Config { mode: Mode; pdfDir: string; usageFile: string; orgs: OrgConfig[]; source: 'file' | 'env'; uploadRegions?: string[] }
 
 const ModeSchema = z.enum(['read', 'draft', 'full']);
+/**
+ * Regionen des Objektspeichers (0.6.0): Kleinbuchstaben, Ziffern und Bindestrich in der Form von `eu-zurich-1`. Der Wert
+ * wird in einen Hostnamen gebaut (`objectstorage.<region>.oraclecloud.com`) und darum eng geprueft: kein Punkt, kein Doppelpunkt, kein Schraegstrich.
+ */
+const REGION_REGEL = 'Region: Kleinbuchstaben, Ziffern und Bindestrich, z.B. eu-zurich-1';
+const RegionSchema = z.string().regex(/^[a-z][a-z0-9]*(?:-[a-z0-9]+)+$/, REGION_REGEL);
+const RegionenSchema = z.array(RegionSchema).min(1);
+/** Prueft eine Regionenliste, die nicht aus der Datei kommt (Bibliotheksweg: `createToolset` mit einem Config-Objekt). */
+export function pruefeRegionen(regionen: unknown, wo: string): string[] {
+  const r = RegionenSchema.safeParse(regionen);
+  if (!r.success) throw new Error(`uploadRegions ungültig (${wo}): ${issueText(r.error)}`);
+  return r.data;
+}
 /** Gilt fuer beide Pfade — Datei und Umgebung. Die Subdomain landet in der URL, sie muss eng geprueft sein. */
 /**
  * Der Organisationsname wird als Verzeichnisname unter `pdfDir` verwendet (get_order_pdf) und muss
@@ -30,10 +44,13 @@ const OrgSchema = z.object({
   // `api_write` (`deleteRecords`). Mail-Endpunkte brauchen den bestehenden Schalter `sendMail`.
   salary: z.boolean().optional(),
   deleteRecords: z.boolean().optional(),
+  // 0.6.0: Regionen fuer den Datei-Upload (commit_file_upload); fehlt das Feld, gilt die globale Liste, sonst eu-zurich-1.
+  uploadRegions: RegionenSchema.optional(),
 });
 const FileSchema = z.object({
   mode: ModeSchema.optional(),
   pdfDir: z.string().optional(),
+  uploadRegions: RegionenSchema.optional(),
   orgs: z.array(OrgSchema).min(1),
 });
 /**
@@ -81,7 +98,7 @@ export async function loadConfig(opts: { file?: string; env?: NodeJS.ProcessEnv;
     }
     const names = new Set<string>();
     for (const o of parsed.data.orgs) { if (names.has(o.name)) throw new Error(`Organisation doppelt: ${o.name}`); names.add(o.name); }
-    return { mode: parsed.data.mode ?? 'read', pdfDir: expand(parsed.data.pdfDir ?? '~/Downloads/cashctrl-mcp'), usageFile, orgs: parsed.data.orgs, source: 'file' };
+    return { mode: parsed.data.mode ?? 'read', pdfDir: expand(parsed.data.pdfDir ?? '~/Downloads/cashctrl-mcp'), usageFile, orgs: parsed.data.orgs, source: 'file', ...(parsed.data.uploadRegions ? { uploadRegions: parsed.data.uploadRegions } : {}) };
   }
   const mode = ModeSchema.safeParse(env.CASHCTRL_MODE ?? 'read');
   if (!mode.success) throw new Error(`CASHCTRL_MODE ungültig — Modus muss read, draft oder full sein.`);
@@ -92,6 +109,8 @@ export async function loadConfig(opts: { file?: string; env?: NodeJS.ProcessEnv;
     deleteOrders: env.CASHCTRL_DELETE_ORDERS === '1',
     salary: env.CASHCTRL_SALARY === '1',
     deleteRecords: env.CASHCTRL_DELETE_RECORDS === '1',
+    // Kommagetrennt, z.B. "eu-zurich-1,eu-frankfurt-1"; leer oder fehlend = Standard.
+    uploadRegions: env.CASHCTRL_UPLOAD_REGIONS ? env.CASHCTRL_UPLOAD_REGIONS.split(',').map((r) => r.trim()) : undefined,
   });
   if (!org.success) throw new Error(`CASHCTRL_*-Umgebungsvariablen ungültig: ${issueText(org.error)}`);
   return {

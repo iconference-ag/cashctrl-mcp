@@ -223,18 +223,18 @@ describe('prepare_send_order / commit_send_order (Stufe full)', () => {
 describe('sendMail-Schalter (Opt-in je Organisation, Standard aus)', () => {
   const ohneSendMail: Config = { mode: 'full', pdfDir: '/tmp/x', usageFile, source: 'env', orgs: [{ name: 'nt', subdomain: 'd', 'apiKey': 'k' }] };
 
-  it('Modus full ohne sendMail: die Werkzeuge fehlen im vollen Werkzeugsatz (33 statt 35; 0.2.4: get_article, 0.3.0: list_currencies, 0.4.0: vier allgemeine)', () => {
+  it('Modus full ohne sendMail: die Werkzeuge fehlen im vollen Werkzeugsatz (35 statt 37; 0.2.4: get_article, 0.3.0: list_currencies, 0.4.0: vier allgemeine)', () => {
     const t = createToolset(ohneSendMail);
     expect(t.names()).not.toContain('prepare_send_order');
     expect(t.names()).not.toContain('commit_send_order');
-    expect(t.names()).toHaveLength(33);
+    expect(t.names()).toHaveLength(35);
   });
 
-  it('Modus full mit sendMail: beide Werkzeuge da (35 im vollen Werkzeugsatz; 0.2.4: get_article, 0.3.0: list_currencies, 0.4.0: vier allgemeine)', () => {
+  it('Modus full mit sendMail: beide Werkzeuge da (37 im vollen Werkzeugsatz; 0.2.4: get_article, 0.3.0: list_currencies, 0.4.0: vier allgemeine)', () => {
     const t = createToolset(cfg('full'));
     expect(t.names()).toContain('prepare_send_order');
     expect(t.names()).toContain('commit_send_order');
-    expect(t.names()).toHaveLength(35);
+    expect(t.names()).toHaveLength(37);
   });
 
   it('Negativkontrolle: commit_send_order ohne Schalter existiert im Modus full nicht', async () => {

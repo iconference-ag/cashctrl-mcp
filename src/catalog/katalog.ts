@@ -13,7 +13,14 @@ export interface KatalogParam {
   /** Felder der Elemente eines JSON-Parameters (Untertabelle der Doku), nur wo es sie gibt. */
   fields?: KatalogParam[];
 }
-export interface KatalogEndpunkt { path: string; method: 'GET' | 'POST'; title: string; area: string; params: KatalogParam[] }
+export interface KatalogEndpunkt {
+  path: string; method: 'GET' | 'POST'; title: string; area: string; params: KatalogParam[];
+  /**
+   * Regel «eines von» (0.6.0), nur an der Sicht von `endpunktFinden`, nie im erzeugten JSON: aus jeder Gruppe muss
+   * mindestens ein Parameter gesetzt sein. Die Mitglieder einer Gruppe tragen dort `required: false`.
+   */
+  einesVon?: string[][];
+}
 export interface Katalog { stand: string; quelle: string; endpunkte: KatalogEndpunkt[] }
 
 export const KATALOG = katalogJson as unknown as Katalog;
@@ -25,7 +32,26 @@ export type Gate = 'salary' | 'deleteRecords' | 'sendMail';
 /** Reihenfolge, in der Schalter genannt werden. */
 const GATE_REIHE: Gate[] = ['salary', 'deleteRecords', 'sendMail'];
 
-const NACH_PFAD = new Map(KATALOG.endpunkte.map((e) => [e.path, e]));
+/**
+ * Regel «eines von» (0.6.0): Die Doku fuehrt bei `person/create.json` und `person/update.json` company, firstName
+ * und lastName alle drei als Pflicht; CashCtrl verlangt nur eines davon (Vorgabe des Auftrags 0.6.0; in diesem Repo nicht nachgemessen).
+ * Die Regel liegt hier und nicht in `endpoints.json`: das ist ein Generat aus der Doku (`scripts/katalog.ts`) und wuerde
+ * beim naechsten Erzeugen ueberschrieben. Je Pfad eine Liste von Gruppen; aus jeder Gruppe muss mindestens ein Parameter gesetzt sein.
+ */
+export const EINES_VON: Readonly<Record<string, readonly (readonly string[])[]>> = {
+  'person/create.json': [['company', 'firstName', 'lastName']],
+  'person/update.json': [['company', 'firstName', 'lastName']],
+};
+
+/** Der Eintrag, wie `endpunktFinden` ihn zeigt: Mitglieder einer Gruppe sind nicht mehr einzeln Pflicht, dafuer steht `einesVon` am Eintrag. */
+function mitRegel(e: KatalogEndpunkt): KatalogEndpunkt {
+  const gruppen = EINES_VON[e.path];
+  if (!gruppen) return e;
+  const mitglieder = new Set(gruppen.flat());
+  return { ...e, params: e.params.map((p) => (mitglieder.has(p.name) ? { ...p, required: false } : p)), einesVon: gruppen.map((g) => [...g]) };
+}
+
+const NACH_PFAD = new Map(KATALOG.endpunkte.map((e) => [e.path, mitRegel(e)]));
 
 /**
  * Sucht den Endpunkt. Erst der genaue Pfad; fehlt er, einmal mit `.json` (der Aufrufer nennt
@@ -56,6 +82,8 @@ export function einordnen(e: Pick<KatalogEndpunkt, 'path' | 'method'>): { art: A
 export type ParamWert = string | number | boolean | unknown[] | Record<string, unknown>;
 
 const fehlt = (v: unknown): boolean => v === undefined || v === null || v === '';
+/** In einer «eines von»-Gruppe zaehlt auch ein Wert nur aus Leerzeichen als nicht gesetzt. */
+const fehltGruppe = (v: unknown): boolean => fehlt(v) || (typeof v === 'string' && v.trim() === '');
 
 /**
  * Prueft Parameter gegen den Katalog, fail-closed, vor jedem Netzaufruf: unbekannte Namen werden
@@ -72,7 +100,9 @@ export function paramsPruefen(e: KatalogEndpunkt, params: Record<string, unknown
     throw new CashCtrlError('validation', `Unbekannte Parameter für ${e.path}: ${unbekannt.join(', ')}. Bekannt: ${e.params.map((p) => p.name).join(', ') || '(keine)'}.`);
   }
   const fehlend = e.params.filter((p) => p.required && fehlt(eingabe[p.name])).map((p) => p.name);
-  if (fehlend.length) throw new CashCtrlError('validation', `Pflichtparameter fehlen für ${e.path}: ${fehlend.join(', ')}.`);
+  // «Eines von»: eine Gruppe ohne jeden gesetzten Parameter fehlt wie ein Pflichtparameter.
+  const gruppenFehlt = (e.einesVon ?? []).filter((g) => g.every((n) => fehltGruppe(eingabe[n]))).map((g) => `mindestens eines von ${g.join(', ')}`);
+  if (fehlend.length || gruppenFehlt.length) throw new CashCtrlError('validation', `Pflichtparameter fehlen für ${e.path}: ${[...fehlend, ...gruppenFehlt].join('; ')}.`);
   const aus: Record<string, ParamWert> = {};
   for (const [name, p] of bekannt) {
     let v = eingabe[name];

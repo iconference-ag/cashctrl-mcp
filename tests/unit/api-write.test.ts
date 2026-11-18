@@ -88,6 +88,16 @@ describe('prepare_api_write', () => {
     await abgewiesen([ORG()], { path: 'person/title/create.json' }, /Pflichtparameter fehlen.*name/);
     await abgewiesen([ORG()], { path: 'person/title/create.json', params: { name: 'x', zusatz: 1 } }, /Unbekannte Parameter.*zusatz/);
   });
+  it('0.6.0 «eines von»: person/create.json geht mit nur company (oder nur firstName oder nur lastName), ohne alle drei wird abgewiesen', async () => {
+    for (const params of [{ company: 'MCP-TEST AG' }, { firstName: 'Anna' }, { lastName: 'Muster' }]) {
+      const e = env();
+      const r = await ts([ORG()], e).call('prepare_api_write', { path: 'person/create.json', params });
+      expect(r.isError, text(r)).toBeFalsy();
+      expect(e.calls).toHaveLength(0);
+    }
+    await abgewiesen([ORG()], { path: 'person/create.json', params: { notes: 'x' } }, /mindestens eines von company, firstName, lastName/);
+    await abgewiesen([ORG()], { path: 'person/update.json', params: { id: 3 } }, /mindestens eines von company, firstName, lastName/);
+  });
   it('Loeschen ohne deleteRecords, Lohn ohne salary, Mail ohne sendMail: abgewiesen, ohne fetch', async () => {
     await abgewiesen([ORG()], LOESCHEN, /deleteRecords/);
     await abgewiesen([ORG()], LOHN, /salary/);
@@ -219,6 +229,21 @@ describe('commit_api_write', () => {
       expect(e.calls).toHaveLength(0);
     });
   }
+  it('0.6.0: file/prepare.json wird abgewiesen (die Antwort truege die writeUrl ins Modell), in prepare und in commit; Hinweis auf prepare_file_upload', async () => {
+    const e = env();
+    for (const path of ['file/prepare.json', 'file/prepare']) {
+      const p = await ts([ORG()], e).call('prepare_api_write', { path, params: { files: [{ name: 'a.pdf', mimeType: 'application/pdf', size: 5 }] } });
+      expect(p.isError, path).toBe(true);
+      expect(text(p)).toMatch(/prepare_file_upload verwenden/);
+    }
+    const tokens = { issue: async () => ({ token: 't', expiresAt: '' }), redeem: async <T>() => ({ path: 'file/prepare.json', params: { files: [] } }) as T };
+    const r = await createToolset(cfg([ORG()]), { fetchImpl: e.fetchImpl, stores: { tokens } }).call('commit_api_write', { token: 't' });
+    expect(r.isError).toBe(true);
+    expect(text(r)).toMatch(/prepare_file_upload verwenden/);
+    expect(e.calls).toHaveLength(0);
+    // file/persist bleibt erlaubt: ohne writeUrl in der Antwort
+    expect((await ts([ORG()]).call('prepare_api_write', { path: 'file/persist.json', params: { ids: '5' } })).isError).toBeFalsy();
+  });
   it('ein Token-Speicher, der Unbekanntes einloest (fremde Eingabe), umgeht den Katalog nicht: unbekannter Pfad und unbekannter Parameter werden in commit abgewiesen', async () => {
     const e = env();
     for (const payload of [{ path: 'person/gibtsnicht.json', params: {} }, { path: 'person/title/create.json', params: { name: 'x', lang: 'de' } }, { path: 'person/list.json', params: {} }]) {
@@ -232,12 +257,12 @@ describe('commit_api_write', () => {
 });
 
 describe('Modus und Annotationen', () => {
-  it('Werkzeugzahlen ohne Schalter: read 17, draft 23, full 33; api_write erst im Modus full', () => {
+  it('Werkzeugzahlen ohne Schalter: read 17, draft 25, full 35; api_write erst im Modus full', () => {
     const e = env();
     const namen = (m: Config['mode']) => createToolset(cfg([ORG()], m), { fetchImpl: e.fetchImpl }).names();
     expect(namen('read')).toHaveLength(17);
-    expect(namen('draft')).toHaveLength(23);
-    expect(namen('full')).toHaveLength(33);
+    expect(namen('draft')).toHaveLength(25);
+    expect(namen('full')).toHaveLength(35);
     expect(namen('read')).toEqual(expect.arrayContaining(['api_catalog', 'api_read']));
     expect(namen('read')).not.toContain('prepare_api_write');
     expect(namen('draft')).not.toContain('commit_api_write');

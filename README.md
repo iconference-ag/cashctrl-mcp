@@ -10,7 +10,7 @@ nicht, nichts wird gehostet.
 
 ## Stand
 
-Fassung 0.5.0 vom 09.11.2026. Was sich je Fassung geändert hat, steht im [Changelog](CHANGELOG.md).
+Fassung 0.6.0 vom 18.11.2026. Was sich je Fassung geändert hat, steht im [Changelog](CHANGELOG.md).
 
 «Gemessen» heisst in diesem Dokument: gegen eine echte CashCtrl-Buchhaltung gelaufen und das Ergebnis in
 CashCtrl nachgelesen. Was nur gegen aufgezeichnete Antworten getestet ist, steht unter
@@ -62,7 +62,7 @@ Fünf Riegel, in dieser Reihenfolge:
 5. **Rolle des API-Benutzers.** In CashCtrl bekommt der API-Benutzer die zur Stufe passende Rolle.
    Das ist der einzige Riegel auf dem Server von CashCtrl, alle anderen liegen auf Ihrem Rechner.
 
-Dazu: der Schlüssel erscheint nie in Werkzeugausgaben, Fehlermeldungen oder Logs. Ein lokaler
+Dazu: der Schlüssel erscheint nie in Werkzeugausgaben, Fehlermeldungen oder Logs. Beim Hochladen einer PDF-Datei (`commit_file_upload`) geht der Inhalt an den Objektspeicher von CashCtrl (Oracle Cloud), nie der Schlüssel: die Upload-Adresse wird vorher gegen die Regionen der Konfiguration geprüft, es gibt keine Umleitung, und die Adresse steht in keiner Ausgabe. Ein lokaler
 Monatszähler warnt ab 80 Prozent des Kontingents und verweigert bei 100 Prozent weitere Aufrufe,
 damit CashCtrl den Zugang nicht sperrt.
 
@@ -140,6 +140,7 @@ Warnung im Log.
   (Pfade auf `/delete.json`) frei, im Modus `full`. Es ersetzt `deleteOrders` nicht und lockert dessen
   Sperre auf ungebuchte Belege nicht: `delete_order` bleibt der sichere Weg für Belege.
 - Mail-Endpunkte der allgemeinen Werkzeuge (Pfade auf `/mail.json`) brauchen den bestehenden Schalter `sendMail`.
+- `uploadRegions` (optional, Standard `["eu-zurich-1"]`) nennt die Regionen des Oracle-Objektspeichers, zu denen `commit_file_upload` hochladen darf: erlaubt ist genau der Host `objectstorage.<region>.oraclecloud.com`. Das Feld steht je Organisation oder einmal auf oberster Ebene der Datei für alle; die Angabe bei der Organisation gilt vor der globalen. Eine Region besteht aus Kleinbuchstaben, Ziffern und Bindestrich (`eu-zurich-1`), sonst startet der Server nicht. Zeigt CashCtrl eine andere Region (der Mandant liegt anderswo), lehnt `commit_file_upload` ab, bevor ein Byte hinausgeht: dann die Region hier eintragen.
 - Mehrere Organisationen sind vorgesehen (Treuhand). Bei genau einer ist der Parameter `org` an
   jedem Werkzeug optional.
 
@@ -148,7 +149,7 @@ Für ein Setup mit einer einzigen Organisation geht es auch ohne Datei, über
 `CASHCTRL_SEND_MAIL` (`1` schaltet Belegversand frei, sonst bleibt er aus) und
 `CASHCTRL_DELETE_ORDERS` (`1` schaltet das Löschen ungebuchter Belege frei, sonst bleibt es aus),
 `CASHCTRL_SALARY` (`1` schaltet die Lohn-Endpunkte frei) und `CASHCTRL_DELETE_RECORDS` (`1` schaltet das allgemeine
-Löschen frei). Entweder Datei oder Umgebungsvariablen: beides gesetzt ist ein Startfehler mit klarer Meldung.
+Löschen frei) und `CASHCTRL_UPLOAD_REGIONS` (kommagetrennt, z. B. `eu-zurich-1,eu-frankfurt-1`). Entweder Datei oder Umgebungsvariablen: beides gesetzt ist ein Startfehler mit klarer Meldung.
 
 ## Hochschalten auf `draft` oder `full`
 
@@ -175,9 +176,9 @@ Schalter öffnen nur die jeweilige Klasse von Endpunkten.
 
 ## Werkzeuge
 
-33 Werkzeuge im Standard (Modus `full`), je 2 mehr mit dem Opt-in `sendMail` (Belegversand) und dem Opt-in
-`deleteOrders` (Löschen ungebuchter Belege), 37 mit beiden. Die Schalter `salary` und `deleteRecords` ändern
-die Zahl nicht (sie öffnen Endpunkte der allgemeinen Werkzeuge). Im Modus `read` sind es 17 Werkzeuge, in `draft` 23.
+35 Werkzeuge im Standard (Modus `full`), je 2 mehr mit dem Opt-in `sendMail` (Belegversand) und dem Opt-in
+`deleteOrders` (Löschen ungebuchter Belege), 39 mit beiden. Die Schalter `salary` und `deleteRecords` ändern
+die Zahl nicht (sie öffnen Endpunkte der allgemeinen Werkzeuge). Im Modus `read` sind es 17 Werkzeuge, in `draft` 25.
 Jedes nimmt optional `org`; bei genau einer Organisation kann der Parameter entfallen.
 
 ### Stufe `read` (17)
@@ -202,13 +203,14 @@ Jedes nimmt optional `org`; bei genau einer Organisation kann der Parameter entf
 | `api_catalog` | durchsucht den eingebauten Katalog der CashCtrl-API (376 Endpunkte) nach Pfad und Parametern, ohne Netzaufruf |
 | `api_read` | liest über jeden GET-Endpunkt des Katalogs (am 24.10.2026 live gemessen (11 Fälle am Demo-Mandanten: JSON, Text ohne Endung, CSV als Text, Excel und PDF als Datei, Kappung, Schalter und Abweisungen ohne Netzaufruf)); Lohn nur mit `salary` |
 
-### Stufe `draft` (6 zusätzlich)
+### Stufe `draft` (8 zusätzlich)
 
 | Werkzeugpaar | Zweck |
 |---|---|
 | `prepare_contact` / `commit_contact` | Kontakt anlegen (auch mit Notiz `notes`), Vorschau warnt bei ähnlichen Kontakten |
 | `prepare_article` / `commit_article` | Artikel anlegen; die Artikelnummer ist Pflicht (ohne sie weist CashCtrl den Artikel ab, gemessen 09.11.2026), die Einheit wird aufgelöst und nie neu angelegt |
 | `prepare_order_draft` / `commit_order_draft` | Offerte, Auftragsbestätigung, Rechnung oder Einkaufsrechnung **als Entwurf** anlegen |
+| `prepare_file_upload` / `commit_file_upload` | PDF (höchstens 10 MB) in die Dateiablage von CashCtrl legen und auf Wunsch an einen Beleg hängen; Näheres unten (0.6.0) |
 
 ### Stufe `full` (10 zusätzlich, dazu je 2 weitere mit den Opt-ins `sendMail` und `deleteOrders`)
 
@@ -221,6 +223,37 @@ Jedes nimmt optional `org`; bei genau einer Organisation kann der Parameter entf
 | `prepare_send_order` / `commit_send_order` | Beleg per CashCtrl-Belegversand mailen, nur mit `sendMail` (siehe Konfiguration) |
 | `prepare_delete_order` / `commit_delete_order` | ungebuchten Beleg endgültig löschen, nur mit `deleteOrders`; gebuchte Belege weist der Server ab, auch wenn sie zwischen Vorschau und Ausführung gebucht wurden |
 | `prepare_api_write` / `commit_api_write` | schreibt über jeden POST-Endpunkt des Katalogs (experimentell, am Mandanten gemessen sind nur vier Lösch-Endpunkte); Löschen nur mit `deleteRecords`, Lohn nur mit `salary`, Mail nur mit `sendMail` |
+
+### PDF hochladen und anhängen (0.6.0)
+
+`prepare_file_upload` / `commit_file_upload` legen eine PDF-Datei in der Dateiablage von CashCtrl ab und hängen sie auf Wunsch an
+einen Beleg. Stufe `draft`: das Werkzeug bucht nichts und löscht nichts; es fügt eine Datei hinzu und, mit `anhaengenAn`, einen
+Anhang an einem vorhandenen Beleg (auch an einem gebuchten).
+
+- Eingabe: `name` (Dateiname ohne `/` und `\`, ohne Steuerzeichen, nicht `.` und nicht `..`, höchstens 255 Zeichen), `inhalt` (der Inhalt der Datei
+  als Base64-Text; im eigenen Prozess über `createToolset(...).call` auch ein `Uint8Array`) **oder** `fileId` einer schon
+  festgehaltenen Datei (dann wird nur angehängt, nichts hochgeladen), `mimeType` (nur `application/pdf`), optional
+  `anhaengenAn: { art: "order", id }`. **Einen Dateipfad nimmt das Werkzeug nie an**; es gibt kein Eingabefeld dafür, ein Wert,
+  der wie ein Pfad aussieht, wird abgewiesen. Geprüft werden: gültiges Base64, höchstens 10 MB (10 × 1024 × 1024 Bytes), die ersten
+  Bytes sind `%PDF-`.
+- `prepare_file_upload` ruft CashCtrl nicht auf. Die Vorschau zeigt Name, Grösse, SHA-256 und Ziel.
+- `commit_file_upload` führt in dieser Reihenfolge aus: `file/prepare`; die `writeUrl` prüfen (Schema `https`, keine
+  Benutzerangaben, Port leer oder 443, Host genau `objectstorage.<region>.oraclecloud.com` mit einer Region aus `uploadRegions`,
+  Pfad beginnt mit `/p/`; sonst Abbruch ohne Upload); PUT der Bytes ohne `Authorization`, ohne Umleitung, mit eigener Zeitgrenze von 120 Sekunden und ohne
+  Drossel und Zähler von CashCtrl, Erfolg nur bei HTTP 200 und gleichem `opc-content-md5`; `file/persist`; mit `anhaengenAn`
+  `order/read` und `order/update_attachments` mit den bisherigen Anhängen und der neuen Datei (CashCtrl ersetzt die ganze Liste,
+  der Server liest sie darum vorher; ist die Liste nicht eindeutig lesbar, sendet er nichts).
+- Mit `anhaengenAn` liest `commit_file_upload` den Beleg schon vor `file/prepare`: gibt es ihn nicht oder ist seine Anhangliste nicht lesbar, endet der Aufruf ohne Upload. Das Anhängen liest die Liste danach frisch.
+- Die `writeUrl` verlässt den Server nie: sie steht in keiner Antwort, keiner Fehlermeldung und keinem Log (höchstens der
+  Hostname). Wird ein Upload nicht festgehalten, löscht CashCtrl die Datei nach 4 Stunden; das Werkzeug löscht selbst nichts.
+- Fehler nach `file/prepare` tragen in `structuredContent` zusätzlich `fileId` und `festgehalten` (`ja`, `nein` oder `offen`; `offen`, wenn der Ausgang von `file/persist` unklar ist). Beim blossen Anhängen mit `fileId` steht nur `fileId`. Der Erfolg nennt `fileId`, `name`, `bytes`, `sha256`, `festgehalten: true`, `angehaengt`, bei Ziel `beleg` und `fileIds`; beim blossen Anhängen mit `fileId` nur `fileId`, `angehaengt`, `beleg` und `fileIds` (kein `festgehalten`: das Werkzeug prüft es dort nicht). Scheitert das Anhängen nach dem Festhalten, nennt auch die Fehlermeldung die `fileId`. Dann `prepare_file_upload` mit `fileId` und
+  `anhaengenAn` aufrufen: das hängt nur noch an und legt keine zweite Datei an.
+- **Speicher:** bis zum `commit_*` liegt die Datei als Base64-Text im Token-Speicher, bei 10 MB (10 × 1024 × 1024 Bytes) rund 14 MB Text (13,3 MiB) je offener Vorschau. Das Token gilt 10 Minuten; abgelaufene Einträge räumt erst die nächste
+  Vorschau weg; es sind höchstens 3 Vorschauen gleichzeitig offen (siehe unten).
+- **Grösse:** Im eigenen Prozess (`createToolset(...).call`) gilt die Grenze von 10 MB sauber: darüber kommt eine Fehlermeldung. Über die Standardeingabe (MCP) nimmt der Server Nachrichten bis 16 MiB (Base64 von 10 MiB plus JSON; das SDK gäbe 10 MiB vor, damit blieben PDF über rund 7,8 MB ohne Antwort). **Dateien über etwa 12 MB beenden die MCP-Verbindung über stdio, statt abgewiesen zu werden:** eine Nachricht über 16 MiB lässt das SDK den Transport schliessen (gemessen mit 17 MiB: der Server endet mit Exit 0). Eine Datei zwischen 10 und 12 MB weist der Server mit Fehlermeldung ab.
+- **Offene Vorschauen:** Der eingebaute Token-Speicher hält höchstens 3 gleichzeitig offene Upload-Vorschauen mit Datei (`inhalt`; eine Vorschau mit blosser `fileId` zählt nicht), gemeinsam über alle Organisationen; eine vierte wird abgewiesen («Zu viele offene Upload-Vorschauen; erst ausführen oder 10 Minuten warten.»). Abgelaufene werden vorher weggeräumt. Gemessen im eigenen Prozess mit einer Datei von 10 MiB (Node 24.22.1, Attrappe für `fetch`): Prozessspeicher 72 MiB vor prepare, 116 MiB danach, 144 MiB nach commit (zugleich die Spitze); in einem weiteren Lauf des Prüfers 184 MiB. **Über stdio (Claude Desktop, `npx`) kann eine Datei von 10 MB den Speicher des Servers auf rund 1 GB treiben (gemessen 854 bis 1048 MiB RSS für eine einzige Vorschau, an `dist/index.js`); im eigenen Prozess rund 144 bis 184 MiB.** Die Ursache über stdio ist nicht gemessen (vermutlich der Lesepuffer des SDK).
+- **Grenzen der Prüfung:** Die Host-Prüfung unterscheidet keine Oracle-Kunden; sie schützt nur vor Hosts ausserhalb von `objectstorage.<region>.oraclecloud.com`. Zwischen `order/read` und `order/update_attachments` kann ein gleichzeitig gesetzter Anhang verloren gehen; CashCtrl kennt kein bedingtes Schreiben. Wer dem Werkzeugsatz ein eigenes `fetchImpl` übergibt, sieht die `writeUrl` im Klartext und darf sie nicht protokollieren.
+- Gemessen ist der Ablauf in CashCtrl (Demo-Mandant, 18.11.2026), das Werkzeug selbst nur gegen Attrappen.
 
 ### Allgemeine Werkzeuge (0.4.0, experimentell)
 
@@ -245,6 +278,8 @@ allgemeine Weg ist für den Rest.
   Fachprüfung des Servers (Rundung, Steuer, Dubletten), am Mandanten nicht gemessen.» Beim Löschen kommt «Löschen ist
   unumkehrbar.» dazu.
 - Listen für CSV-Parameter (`ids`, `orderIds` …) darf das Modell als Liste angeben; der Server verbindet sie mit Komma.
+- Regel «eines von» (0.6.0): bei `person/create.json` und `person/update.json` genügt eines von `company`, `firstName`, `lastName`. Laut Doku von CashCtrl gilt «Either firstName, lastName or company must be set»; am Mandanten noch nicht gemessen. `api_catalog` zeigt das als `einesVon`.
+- `file/prepare.json` weist der allgemeine Schreibweg ab (0.6.0): die Antwort trüge die Upload-Adresse ins Modell. Für Uploads `prepare_file_upload` verwenden.
 
 Bei einem Fehler enthält die Antwort neben dem Text `structuredContent` mit `kind` (Art des
 Fehlers), bei Schreibaufrufen `sent` (die Anfrage könnte CashCtrl erreicht haben; im Zweifel
@@ -288,7 +323,7 @@ die Währung des Mandanten; Kurse setzt CashCtrl selbst.
 - **Negatives Total:** erlaubt. CashCtrl nahm am Demo-Mandanten einen Beleg mit Total −100 an (17.10.2026); der Server weist ihn
   seit 0.3.0 nicht mehr ab. Ob das buchhalterisch eine Gutschrift ist, entscheidet der Mensch.
 - **Als Fachwerkzeug nicht enthalten:** Löschen ausser ungebuchten Belegen mit `deleteOrders`, Lohn, Anlagegüter, Geschäftsjahr
-  abschliessen oder wiedereröffnen, Berichts-Endpunkte, Importe, Dateiablage, Einstellungen. Seit 0.4.0 sind sie über die
+  abschliessen oder wiedereröffnen, Berichts-Endpunkte, Importe, Dateiablage (ausser dem PDF-Upload seit 0.6.0), Einstellungen. Seit 0.4.0 sind sie über die
   allgemeinen Werkzeuge erreichbar (experimentell; am Mandanten gemessen sind nur vier Lösch-Endpunkte, siehe
   [Entwicklung](#entwicklung)), Löschen nur mit `deleteRecords`, Lohn nur
   mit `salary`. Als Löschen gilt auch `file/empty_archive.json` (leert das Dateiarchiv endgültig). Geschäftsjahr abschliessen
@@ -329,6 +364,8 @@ Schweizer KMU-Kontenrahmen voraus; die Annahmen stehen im Kopf der Testdateien.
 Restzahlung (09.11.2026). **Ungeprüft ist `send_order`:** Unser Demo-Mandant lässt den Belegversand nicht zu, das
 Werkzeug läuft nur unter Unit-Tests gegen aufgezeichnete Antworten. Wer es einsetzt, prüft das Ergebnis in
 CashCtrl nach.
+
+**Ungeprüft ist `file_upload`** (0.6.0): der Ablauf in CashCtrl ist am 18.11.2026 am Demo-Mandanten gemessen, das Werkzeug läuft nur unter Unit-Tests gegen Attrappen. Der PUT mit dem echten `fetch` ist gegen einen lokalen Testserver geprüft (Node 24.22.1: kein `Authorization`, kein `Content-Type`, `Content-Length` gesetzt, 302 wird nicht verfolgt), nicht gegen den Objektspeicher.
 
 Vom allgemeinen Schreibweg (`prepare_api_write` / `commit_api_write`) sind vier Lösch-Endpunkte gemessen
 (`inventory/article/delete`, `journal/delete`, `person/delete`, `order/bookentry/delete`, 09.11.2026). Alle

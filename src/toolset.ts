@@ -12,6 +12,7 @@ import { ledgerModule } from './tools/read/ledger.js';
 import { contactDraftModule } from './tools/draft/contact.js';
 import { articleDraftModule } from './tools/draft/article.js';
 import { orderDraftModule } from './tools/draft/order.js';
+import { fileUploadModule } from './tools/draft/file-upload.js';
 import { statusModule } from './tools/full/status.js';
 import { orderCreateModule } from './tools/full/create.js';
 import { paymentModule } from './tools/full/payment.js';
@@ -48,8 +49,8 @@ function mitKontingentHinweis(ctx: ToolContext, t: ToolDef): ToolDef {
 }
 
 /** Werkzeugschicht ohne Transport: Modus-Gate, Kontext, Tokens — dieselbe Liste fuer den Operating Desk und den MCP-Server. */
-export function createToolset(config: Config, deps: { fetchImpl?: typeof fetch; now?: () => Date; modules?: ToolModule[]; stores?: Stores } = {}): Toolset {
-  const ctx = buildContext(config, { fetchImpl: deps.fetchImpl, now: deps.now, stores: deps.stores });
+export function createToolset(config: Config, deps: { fetchImpl?: typeof fetch; now?: () => Date; modules?: ToolModule[]; stores?: Stores; uploadTimeoutMs?: number } = {}): Toolset {
+  const ctx = buildContext(config, { fetchImpl: deps.fetchImpl, now: deps.now, stores: deps.stores, uploadTimeoutMs: deps.uploadTimeoutMs });
   const modules = deps.modules ?? DEFAULT_MODULES;
   // requires ist der zweite Gate neben dem Modus-Rang — Opt-in je Organisation, Standard aus
   // (sendMail: 28.08.2026; deleteOrders: 12.10.2026). Es genuegt, wenn IRGENDEINE
@@ -75,4 +76,4 @@ export function createToolset(config: Config, deps: { fetchImpl?: typeof fetch; 
   };
 }
 // Die Module haengen die Tasks 9–19 hier an; die Reihenfolge ist die Reihenfolge in der Werkzeugliste.
-export const DEFAULT_MODULES: ToolModule[] = [orgsModule, contactsModule, articlesModule, ordersModule, ledgerModule, contactDraftModule, articleDraftModule, orderDraftModule, statusModule, orderCreateModule, paymentModule, journalModule, sendModule, deleteModule, apiModule];
+export const DEFAULT_MODULES: ToolModule[] = [orgsModule, contactsModule, articlesModule, ordersModule, ledgerModule, contactDraftModule, articleDraftModule, orderDraftModule, fileUploadModule, statusModule, orderCreateModule, paymentModule, journalModule, sendModule, deleteModule, apiModule];

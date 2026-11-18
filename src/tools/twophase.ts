@@ -63,7 +63,7 @@ export function nachSchreiben(e: unknown, geschrieben: boolean): unknown {
   if (e instanceof CashCtrlError) {
     if (e.sent === true) return e;
     const text = e.message.replace(/ — bitte erneut versuchen\.$/, '.');
-    return new CashCtrlError(e.kind, `${text} Ein Schreibaufruf dieses Auftrags hat CashCtrl bereits erreicht. ${OFFEN_SATZ}`, e.details, { sent: true, createdId: e.createdId });
+    return new CashCtrlError(e.kind, `${text} Ein Schreibaufruf dieses Auftrags hat CashCtrl bereits erreicht. ${OFFEN_SATZ}`, e.details, { sent: true, createdId: e.createdId, fileId: e.fileId, festgehalten: e.festgehalten });
   }
   const text = e instanceof Error ? `Fehler: ${e.message}` : 'Unbekannter Fehler';
   return new CashCtrlError('unknown', `${text} Ein Schreibaufruf dieses Auftrags hat CashCtrl bereits erreicht. ${OFFEN_SATZ}`, undefined, { sent: true });

@@ -1,6 +1,6 @@
 {
   "name": "@iconference/cashctrl-mcp",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Inoffizieller MCP-Server für CashCtrl: lesen frei, schreiben nur auf gesetzter Stufe und nach Vorschau mit Bestätigung",
   "keywords": [
     "mcp",

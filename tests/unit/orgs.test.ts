@@ -53,7 +53,7 @@ describe('ToolContext.config — schluesselfreie Sicht (R8)', () => {
     expect(JSON.stringify(cfg)).toContain('abcdX');
     expect(JSON.stringify(ctx.config)).not.toContain('abcdX');
     expect(JSON.stringify(ctx)).not.toContain('abcdX');
-    expect(ctx.config.orgs).toEqual([{ name: 'nt', subdomain: 'demo', keyPrefix: 'abcd', sendMail: false, deleteOrders: false, salary: false, deleteRecords: false }]);
+    expect(ctx.config.orgs).toEqual([{ name: 'nt', subdomain: 'demo', keyPrefix: 'abcd', sendMail: false, deleteOrders: false, salary: false, deleteRecords: false, uploadRegions: ['eu-zurich-1'] }]);
     expect(ctx.config).toMatchObject({ mode: 'read', pdfDir: '/tmp/x', usageFile, source: 'file' });
     expect(Object.keys(ctx.config)).toEqual(['mode', 'pdfDir', 'usageFile', 'source', 'orgs']);
   });

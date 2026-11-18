@@ -55,13 +55,16 @@ export function ok(data: unknown, note?: string): CallToolResult {
 /** Nur die Meldung geht nach aussen — nie `details` einer CashCtrlError und nie der Schluessel. */
 export function fail(err: unknown): CallToolResult {
   const msg = err instanceof CashCtrlError ? err.message : err instanceof Error ? `Fehler: ${err.message}` : 'Unbekannter Fehler';
-  // Maschinenlesbare Fehlerart fuer Aufrufer ohne Textmuster: `sent` (nur POST), `createdId` und `reason` nur, wenn gesetzt.
+  // Maschinenlesbare Fehlerart fuer Aufrufer ohne Textmuster: `sent` (nur POST), `createdId`, `reason`, `fileId` und `festgehalten` nur, wenn gesetzt.
   // `message` steht auch hier: Claude Desktop gibt dem Modell nur structuredContent weiter, wenn es vorhanden ist (25.10.2026).
   const structured: Record<string, unknown> = { kind: err instanceof CashCtrlError ? err.kind : 'unknown', message: msg };
   if (err instanceof CashCtrlError) {
     if (err.sent !== undefined) structured.sent = err.sent;
     if (err.createdId !== undefined) structured.createdId = err.createdId;
     if (err.reason !== undefined) structured.reason = err.reason;
+    // Datei-Upload (0.6.0): der Desk haengt beim naechsten Versuch nur an und soll dafuer keinen Text lesen muessen.
+    if (err.fileId !== undefined) structured.fileId = err.fileId;
+    if (err.festgehalten !== undefined) structured.festgehalten = err.festgehalten;
   }
   return { content: [{ type: 'text', text: msg }], isError: true, structuredContent: structured };
 }

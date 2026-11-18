@@ -96,3 +96,14 @@ describe('fail: Meldung auch in structuredContent', () => {
     expect(r.structuredContent).toMatchObject({ kind: 'unknown', message: 'Fehler: kaputt' });
   });
 });
+
+describe('fail: fileId und festgehalten nur, wenn gesetzt (0.6.0)', () => {
+  it('gesetzt: beide in structuredContent', () => {
+    const r = fail(new CashCtrlError('network', 'x', undefined, { sent: true, fileId: 5, festgehalten: 'offen' }));
+    expect(r.structuredContent).toEqual({ kind: 'network', message: 'x', sent: true, fileId: 5, festgehalten: 'offen' });
+  });
+  it('nicht gesetzt: unveraendert, ohne diese Schluessel', () => {
+    const r = fail(new CashCtrlError('validation', 'y', undefined, { sent: false }));
+    expect(r.structuredContent).toEqual({ kind: 'validation', message: 'y', sent: false });
+  });
+});

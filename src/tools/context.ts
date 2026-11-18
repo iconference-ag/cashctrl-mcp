@@ -2,6 +2,9 @@ import type { Config, Mode } from '../config/config.js';
 import { CashCtrlClient } from '../core/client.js';
 import { CashCtrlError } from '../core/errors.js';
 import { CashCtrlHttp } from '../core/http.js';
+import { createHash } from 'node:crypto';
+import { pruefeRegionen } from '../config/config.js';
+import { STANDARD_REGIONEN, UPLOAD_TIMEOUT_MS, pruefeWriteUrl, putObjekt } from '../core/objektspeicher.js';
 import { TokenBucket } from '../core/ratelimit.js';
 import { MONATSLIMIT, UsageCounter } from '../core/usage.js';
 import type { PdfStore, Stores, TokenStore, UsageStore } from '../core/stores.js';
@@ -14,7 +17,7 @@ import { MemoryTokenStore } from './tokens.js';
  * in einem Log, einer Fehlermeldung, einem fremden Modul — haette ihn sonst mitgenommen.
  * `keyPrefix` sind die ersten vier Zeichen; mehr braucht `usage` nicht.
  */
-export interface OrgSicht { name: string; subdomain: string; keyPrefix: string; sendMail: boolean; deleteOrders: boolean; salary: boolean; deleteRecords: boolean }
+export interface OrgSicht { name: string; subdomain: string; keyPrefix: string; sendMail: boolean; deleteOrders: boolean; salary: boolean; deleteRecords: boolean; uploadRegions: string[] }
 export interface ConfigSicht { mode: Mode; pdfDir: string; usageFile: string; source: 'file' | 'env'; orgs: OrgSicht[] }
 
 export interface ToolContext {
@@ -26,6 +29,12 @@ export interface ToolContext {
   gesendet(org: string): number;
   /** Firmenname des Hauptstandorts fuer die Vorschau (B-MCP-3), je Organisation einmal gelesen; `undefined`, wenn CashCtrl ihn nicht liefert. */
   firma(org: string): Promise<string | undefined>;
+  /**
+   * Legt die Bytes unter der `writeUrl` von `file/prepare` im Objektspeicher von CashCtrl ab (0.6.0): prueft die Adresse gegen die
+   * Regionen der Organisation, PUT ohne Schluessel und ohne Umleitung, Erfolg nur bei 200 und gleichem MD5. Geht nicht ueber
+   * die Drossel und den Zaehler von CashCtrl. Jede Meldung bleibt frei von der Adresse.
+   */
+  hochladen(org: string, writeUrl: unknown, bytes: Uint8Array): Promise<void>;
 }
 /**
  * Firmenname des Hauptstandorts aus `location/list`: `orgName` (z. B. «Nothing-Toulouse AG»);
@@ -35,7 +44,7 @@ export function hauptfirma(locs: unknown[]): string {
   const erster = locs[0] as { orgName?: unknown; name?: unknown } | undefined;
   return String(erster?.orgName ?? erster?.name ?? '');
 }
-export function buildContext(config: Config, deps: { fetchImpl?: typeof fetch; now?: () => Date; stores?: Stores } = {}): ToolContext {
+export function buildContext(config: Config, deps: { fetchImpl?: typeof fetch; now?: () => Date; stores?: Stores; uploadTimeoutMs?: number } = {}): ToolContext {
   // O125: der Aufrufer darf Zaehler, Token und PDF-Ablage mitbringen; sonst die eingebauten.
   const usage: UsageStore = deps.stores?.usage ?? new UsageCounter(config.usageFile, MONATSLIMIT, deps.now);
   const clients = new Map<string, CashCtrlClient>();
@@ -53,9 +62,12 @@ export function buildContext(config: Config, deps: { fetchImpl?: typeof fetch; n
     https.set(o.name, http);
     clients.set(o.name, new CashCtrlClient(http));
   }
+  // 0.6.0: Die Regionen werden in einen Hostnamen gebaut. Aus einer Datei prueft sie das Schema schon; ein Config-Objekt aus dem Code (Desk, Tests) nicht.
+  const regionenVon = (org: string[] | undefined, global: string[] | undefined, name: string): string[] =>
+    org !== undefined ? pruefeRegionen(org, `Organisation ${name}`) : global !== undefined ? pruefeRegionen(global, 'global') : [...STANDARD_REGIONEN];
   const sicht: ConfigSicht = {
     mode: config.mode, pdfDir: config.pdfDir, usageFile: config.usageFile, source: config.source,
-    orgs: config.orgs.map((o) => ({ name: o.name, subdomain: o.subdomain, keyPrefix: o['apiKey'].slice(0, 4), sendMail: Boolean(o.sendMail), deleteOrders: Boolean(o.deleteOrders), salary: Boolean(o.salary), deleteRecords: Boolean(o.deleteRecords) })),
+    orgs: config.orgs.map((o) => ({ name: o.name, subdomain: o.subdomain, keyPrefix: o['apiKey'].slice(0, 4), sendMail: Boolean(o.sendMail), deleteOrders: Boolean(o.deleteOrders), salary: Boolean(o.salary), deleteRecords: Boolean(o.deleteRecords), uploadRegions: regionenVon(o.uploadRegions, config.uploadRegions, o.name) })),
   };
   const orgName = (org?: string): string => {
     if (org) { if (!clients.has(org)) throw new CashCtrlError('validation', `Organisation unbekannt: ${org}. Bekannt: ${[...clients.keys()].join(', ')}`); return org; }
@@ -79,5 +91,14 @@ export function buildContext(config: Config, deps: { fetchImpl?: typeof fetch; n
       return name;
     } catch { return undefined; }
   };
-  return { config: sicht, clients, tokens: deps.stores?.tokens ?? new MemoryTokenStore(), usage, pdf: deps.stores?.pdf ?? new FilePdfStore(config.pdfDir), orgName, warnung, gesendet: (org) => https.get(org)?.gesendet ?? 0, client: (org) => clients.get(orgName(org))!, firma };
+  // 0.6.0: der PUT in den Objektspeicher nimmt dieselbe `fetchImpl` wie die API-Aufrufe (Tests, Desk), aber nie `CashCtrlHttp`.
+  const putFetch = deps.fetchImpl ?? fetch;
+  const hochladen = async (org: string, writeUrl: unknown, bytes: Uint8Array): Promise<void> => {
+    const regionen = sicht.orgs.find((o) => o.name === org)?.uploadRegions ?? [...STANDARD_REGIONEN];
+    const url = pruefeWriteUrl(writeUrl, regionen);
+    // MD5 nur hier und nur als Gegenprobe zu `opc-content-md5` (kein Sicherheitsmerkmal); SHA-256 bleibt die Pruefsumme des Werkzeugs.
+    const md5 = createHash('md5').update(bytes).digest('base64');
+    await putObjekt(url, bytes, md5, { fetchImpl: putFetch, timeoutMs: deps.uploadTimeoutMs ?? UPLOAD_TIMEOUT_MS });
+  };
+  return { config: sicht, clients, tokens: deps.stores?.tokens ?? new MemoryTokenStore(), usage, pdf: deps.stores?.pdf ?? new FilePdfStore(config.pdfDir), orgName, warnung, gesendet: (org) => https.get(org)?.gesendet ?? 0, client: (org) => clients.get(orgName(org))!, firma, hochladen };
 }
