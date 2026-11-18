@@ -113,8 +113,13 @@ Zwei Schritte, beide nötig:
 2. In CashCtrl unter Einstellungen, Benutzer & Rollen die Rolle des API-Benutzers auf schreibend
    erweitern.
 
-Claude Desktop erneut ganz beenden und neu starten. Die Werkzeugliste zeigt jetzt dreiundzwanzig
-Werkzeuge, darunter `prepare_contact` und `commit_contact`.
+Claude Desktop erneut ganz beenden und neu starten. Die Werkzeugliste zeigt jetzt fünfundzwanzig
+Werkzeuge, darunter `prepare_contact` und `commit_contact` und, seit Fassung 0.6.0, `prepare_file_upload` und
+`commit_file_upload` (PDF hochladen und an einen Beleg hängen; die Datei liegt als Base64 in der Nachricht, nie als Pfad).
+
+Hinweis zu grossen PDF: Über die Standardeingabe, die Claude Desktop nutzt, kann eine Datei von 10 MB den Speicher des
+Servers auf rund 1 GB treiben (gemessen 854 bis 1048 MiB). Über etwa 12 MB beendet stdio die Verbindung, statt die Datei
+abzuweisen; Claude Desktop meldet dann «Verbindung geschlossen» und der Server muss neu gestartet werden.
 
 ## 7. Der erste geschriebene Kontakt
 
@@ -161,7 +166,7 @@ allow», wenn Sie den Dialog als zweite Kontrolle behalten wollen.
 
 ## 9. Auf `full` hochschalten
 
-`full` fügt zehn Werkzeuge hinzu, die Liste zeigt dann dreiunddreissig: Belegstatus setzen, Beleg mit Status anlegen,
+`full` fügt zehn Werkzeuge hinzu, die Liste zeigt dann fünfunddreissig: Belegstatus setzen, Beleg mit Status anlegen,
 Zahlung erfassen, Buchung anlegen, dazu den allgemeinen Schreibweg `prepare_api_write` / `commit_api_write`, je mit
 Vorschau und Ausführung. Vorgehen wie in Schritt 6, mit `"mode": "full"` und einer entsprechend
 weiten Rolle in CashCtrl.

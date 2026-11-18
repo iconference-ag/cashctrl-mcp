@@ -84,6 +84,35 @@ Der Belegversand lässt sich am Demo-Mandanten nicht messen, CashCtrl verweigert
 - Absender: `mailFrom` ist Pflicht. Der Server nimmt als Standard die `email` des Standorts vom `type` `MAIN` aus `location/list`, mit dem ersten Standort als Rückfall; `from` an `prepare_send_order` überschreibt ihn (gemessen 28.08.2026).
 - Versandstatus: Welchen Status ein Beleg nach `order/document/mail` bekommt, steht im Kategorie-Kopf als `sentStatusId` und nicht in `status[]` (Offerte: «Offen», Zahlungserinnerung: «Versandt»). Der Server fällt zurück auf die Statusnamen «Versandt», dann «Gesendet»; kennt die Kategorie keinen, bleibt der Status stehen und der Server warnt (gemessen 28.08.2026).
 
+## Personen und Bankverbindungen (gemessen 18.11.2026)
+
+Demo-Mandant, Einkauf, Kategorie Rechnung.
+
+- `person/create` nur mit `company`, dazu `bankAccounts` und `vatUid`, wird angenommen. Die Person trägt kein `firstName` und kein `lastName`, `name` ist gleich `company`.
+- `person/update` legt `bankAccounts` und `addresses` mit neuen Kennungen neu an. Ohne `nr` vergibt es eine neue Personennummer. Belege, die auf die alten Kennungen zeigten, verlieren `recipientBankAccountId` und `recipientAddressId`; `recipientIban` bleibt als Text stehen.
+- `order/create` setzt am Belegdokument selbst eine Bankverbindung des Lieferanten. Gemessen ist die mit `pos` 0 und Typ `DEFAULT`; welches von beiden entscheidet, ist nicht unterschieden.
+- Eine QR-Referenz mit gewöhnlicher IBAN wird abgewiesen («Da eine reguläre IBAN (ausserhalb des QR-IID Bereichs) verwendet wird, wird eine ISO-11649 Referenz erwartet …»). Angenommen werden eine QR-Referenz mit QR-IBAN und eine SCOR-Referenz mit gewöhnlicher IBAN.
+
+## Belegdokument aktualisieren (gemessen 18.11.2026)
+
+Demo-Mandant, Einkauf, Kategorie Rechnung.
+
+- `order/document/update` nur mit `id` und `customReference` lässt die übrigen Felder mit Kennung stehen (`layoutId`, `orgLocationId`, `orgBankAccountId`, `recipientAddressId`, `recipientBankAccountId`). `header` und `footer` gehen von `""` auf `null`.
+- Nicht gemessen: was geschieht, wenn man ein Textfeld mit Inhalt (`header`, `footer`) auslässt.
+
+## Fremdwährung (gemessen 18.11.2026)
+
+Demo-Mandant, Einkauf, Kategorie Rechnung.
+
+- Ein Beleg in Fremdwährung ohne `currencyRate` bekommt den Kurs des Belegdatums, gleich `currency/exchangerate` dieses Datums. Ein mitgesendeter Kurs bleibt.
+
+## Suche in person/list (gemessen 18.11.2026)
+
+Demo-Mandant.
+
+- `filter` mit `vatUid` und `like` trifft nur die gespeicherte Schreibweise (`CHE-999.999.996` trifft, `CHE999999996` nicht).
+- `filter` mit `iban` trifft nur die Bankverbindung, die die Liste in der Spalte `iban` zeigt, und nur ohne Leerzeichen. Eine zweite IBAN der Person trifft nicht, auch nicht über `query`.
+
 ## Datei-Upload (gemessen 18.11.2026)
 
 Eine Datei kommt in vier Schritten in CashCtrl und an einen Beleg. Der Ablauf ist am Demo-Mandanten gemessen; der MCP-Server setzt ihn mit `prepare_file_upload` / `commit_file_upload` um.
@@ -92,3 +121,8 @@ Eine Datei kommt in vier Schritten in CashCtrl und an einen Beleg. Der Ablauf is
 2. `PUT` der Bytes auf die `writeUrl`, ohne `Authorization` und ohne `Content-Type`, nur mit `Content-Length`: Antwort `200` mit leerem Körper und dem Kopf `opc-content-md5` (MD5 der Bytes, Base64). Der API-Schlüssel gehört nicht an diesen Host.
 3. `file/persist` mit `ids` (CSV der `fileId`) hält die Datei fest. Eine nicht festgehaltene Datei löscht CashCtrl laut Doku nach 4 Stunden.
 4. `order/update_attachments` mit `id` (Beleg) und `fileIds` (CSV) setzt die GANZE Anhangliste des Belegs; laut Doku entfernt eine leere Liste alle Anhänge. Wer anhängen will, liest vorher `order/read` (`data.attachments[].fileId`) und sendet die bisherigen Kennungen plus die neue. Der Aufruf ändert `lastUpdated` des Belegs.
+
+Weitere Messungen (18.11.2026, lokaler Build von 0.6.0 mit dem echten Objektspeicher, Demo-Mandant):
+
+- An einen Beleg, der schon einen Anhang trug, enthielt `fileIds` danach alt und neu; der alte Anhang blieb. Der PUT gab 200, `opc-content-md5` stimmte, und `lastUpdated` des Belegs hat sich geändert.
+- `file/read.json` einer vorbereiteten, nicht festgehaltenen Datei nennt die Schreibadresse nicht: kein Feld mit «Url», `isTemporary` ist `true`. `file/list.json` zeigt vorübergehende Dateien nicht.

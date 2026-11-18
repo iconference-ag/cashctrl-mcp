@@ -11,7 +11,7 @@ import { twoPhaseTools } from '../twophase.js';
 
 /**
  * Datei hochladen und an einen Beleg haengen (0.6.0): `prepare_file_upload` / `commit_file_upload`.
- * Ablauf in CashCtrl (am Demo-Mandanten gemessen, 18.11.2026; das Werkzeug selbst nur gegen Attrappen):
+ * Ablauf in CashCtrl (am Demo-Mandanten gemessen, 18.11.2026; das Werkzeug dort ebenfalls, mit Anhang an einen Beleg mit vorhandenem Anhang):
  * file/prepare (fileId + writeUrl), PUT der Bytes in den Objektspeicher, file/persist, order/update_attachments.
  * Die `writeUrl` verlaesst diesen Prozess nie: sie steht in keiner Antwort und keiner Meldung.
  */
@@ -164,7 +164,7 @@ export const fileUploadModule: ToolModule = {
   tools(ctx: ToolContext) {
     return twoPhaseTools<typeof Input, Payload>(ctx, 'draft', {
       kind: 'file_upload', title: 'PDF hochladen und anhängen', destructive: false, input: Input, ohneNetz: true,
-      description: 'Legt eine PDF-Datei (höchstens 10 MB) in der Dateiablage von CashCtrl ab und hängt sie auf Wunsch an einen Beleg (anhaengenAn: art order, id). inhalt ist der Base64-Text der Datei, nie ein Dateipfad; name ist der Dateiname ohne / und \\. Oder fileId einer schon festgehaltenen Datei: dann wird nur angehängt. Die bisherigen Anhänge des Belegs bleiben. prepare ruft CashCtrl nicht auf und zeigt Name, Grösse, SHA-256 und Ziel. commit lädt zum Objektspeicher von CashCtrl hoch (Oracle Cloud, Region aus der Konfiguration, Standard eu-zurich-1) und prüft die Prüfsumme. Löscht nichts. Am Mandanten ist der CashCtrl-Ablauf gemessen, dieses Werkzeug nur gegen Attrappen.',
+      description: 'Legt eine PDF-Datei (höchstens 10 MB) in der Dateiablage von CashCtrl ab und hängt sie auf Wunsch an einen Beleg (anhaengenAn: art order, id). inhalt ist der Base64-Text der Datei, nie ein Dateipfad; name ist der Dateiname ohne / und \\. Oder fileId einer schon festgehaltenen Datei: dann wird nur angehängt. Die bisherigen Anhänge des Belegs bleiben. prepare ruft CashCtrl nicht auf und zeigt Name, Grösse, SHA-256 und Ziel. commit lädt zum Objektspeicher von CashCtrl hoch (Oracle Cloud, Region aus der Konfiguration, Standard eu-zurich-1) und prüft die Prüfsumme. Löscht nichts. Am Demo-Mandanten gemessen (18.11.2026).',
       async prepare(c, a) {
         const org = c.orgName(a.org);
         if (a.inhalt !== undefined && a.fileId !== undefined) throw inValid('Entweder inhalt oder fileId angeben, nicht beides.');

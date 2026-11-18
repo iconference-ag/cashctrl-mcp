@@ -249,7 +249,7 @@ existing document (also a booked one).
 - **Size:** In your own process (`createToolset(...).call`) the limit of 10 MB applies cleanly: above it you get an error message. Over standard input (MCP) the server accepts messages up to 16 MiB (base64 of 10 MiB plus JSON; the SDK default of 10 MiB would leave PDFs over about 7.8 MB without a response). **Files over about 12 MB end the MCP connection over stdio instead of being refused:** for a message over 16 MiB the SDK closes the transport (measured with 17 MiB: the server exits with code 0). A file between 10 and 12 MB is refused by the server with an error message.
 - **Open previews:** The built-in token store holds at most 3 upload previews with a file (`inhalt`; a preview with a bare `fileId` does not count) open at the same time, shared across all organisations; a fourth is refused ("Zu viele offene Upload-Vorschauen; erst ausführen oder 10 Minuten warten."). Expired ones are swept first. Measured in your own process with a 10 MiB file (Node 24.22.1, test double for `fetch`): process memory 72 MiB before prepare, 116 MiB after, 144 MiB after commit (also the peak); 184 MiB in another run by the reviewer. **Over stdio (Claude Desktop, `npx`) a 10 MB file can drive the server's memory to about 1 GB (measured 854 to 1048 MiB RSS for a single preview, on `dist/index.js`); in your own process about 144 to 184 MiB.** The cause over stdio is not measured (presumably the read buffer of the SDK).
 - **Limits of the check:** The host check does not tell Oracle customers apart; it only protects against hosts outside `objectstorage.<region>.oraclecloud.com`. Between `order/read` and `order/update_attachments` an attachment set at the same time can be lost; CashCtrl has no conditional write. Anyone who passes their own `fetchImpl` to the toolset sees the `writeUrl` in plain text and must not log it.
-- The flow in CashCtrl was measured (demo tenant, 18 November 2026); the tool itself only against test doubles.
+- The flow in CashCtrl and the tool itself were measured (demo tenant, 18 November 2026, real object storage; details under "Development").
 
 ### General tools (0.4.0, experimental)
 
@@ -275,7 +275,7 @@ route is for the rest.
   check by the server for rounding, tax and duplicates, not measured on the tenant). For deletion, "Löschen ist
   unumkehrbar." (deleting is irreversible) is added.
 - For CSV parameters (`ids`, `orderIds` …) the model may pass a list; the server joins it with commas.
-- "One of" rule (0.6.0): for `person/create.json` and `person/update.json` one of `company`, `firstName`, `lastName` is enough. According to CashCtrl's documentation "Either firstName, lastName or company must be set"; not yet measured on the tenant. `api_catalog` shows it as `einesVon`.
+- "One of" rule (0.6.0): for `person/create.json` and `person/update.json` one of `company`, `firstName`, `lastName` is enough. According to CashCtrl's documentation "Either firstName, lastName or company must be set"; measured on the demo tenant on 18 November 2026: `person/create` with only `company` is accepted (the person then carries no `firstName` and no `lastName`, `name` equals `company`). `api_catalog` shows it as `einesVon`.
 - The general write path refuses `file/prepare.json` (0.6.0): its response would carry the upload address into the model. Use `prepare_file_upload` for uploads.
 
 On failure the response carries `structuredContent` next to the text: `kind` (type of error),
@@ -361,7 +361,7 @@ final payment (9 November 2026). **`send_order` is unverified:** our demo tenant
 tool runs only under unit tests against recorded responses. Anyone who uses it checks the result in
 CashCtrl.
 
-**`file_upload` is unverified** (0.6.0): the flow in CashCtrl was measured on 18 November 2026 on the demo tenant, the tool itself only runs under unit tests against test doubles. The PUT with the real `fetch` was checked against a local test server (Node 24.22.1: no `Authorization`, no `Content-Type`, `Content-Length` set, a 302 is not followed), not against the object storage.
+**`file_upload` is measured** (0.6.0), on 18 November 2026 on the demo tenant with the local build and the real object storage: upload to a document that already carried an attachment. `fileIds` held old and new, the old attachment stayed; the PUT to `objectstorage.eu-zurich-1.oraclecloud.com` returned 200 with the same MD5, and `lastUpdated` of the document changed. `file/read` of a prepared, not yet persisted file does not give out the write address either (no field with "Url", `isTemporary` is true; `file/list` does not show temporary files). **Still unmeasured:** regions other than `eu-zurich-1`, files near 10 MB on the real storage, and Node 22 on the real storage. The PUT with the real `fetch` was also checked against a local test server (Node 24.22.1: no `Authorization`, no `Content-Type`, `Content-Length` set, a 302 is not followed).
 
 Of the general write path (`prepare_api_write` / `commit_api_write`) four delete endpoints are measured
 (`inventory/article/delete`, `journal/delete`, `person/delete`, `order/bookentry/delete`, 9 November 2026). All

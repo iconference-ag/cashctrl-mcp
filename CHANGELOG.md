@@ -18,7 +18,7 @@ Neu:
 - `prepare_api_write` weist `file/prepare.json` ab: die Antwort trüge die Upload-Adresse ins Modell. Für Uploads `prepare_file_upload`.
 - Werkzeugzahlen ohne Schalter: 17 im Modus `read`, 25 in `draft`, 35 in `full`.
 
-Gemessen (18.11.2026, Demo-Mandant): der Ablauf in CashCtrl (`file/prepare`, PUT in den Objektspeicher mit 200 und `opc-content-md5`, `file/persist`, `order/update_attachments`). Das Werkzeug selbst läuft nur gegen Attrappen und ist am Mandanten nicht gemessen. Der PUT mit dem echten `fetch` ist gegen einen lokalen Testserver geprüft (Node 24.22.1), nicht gegen den Objektspeicher.
+Gemessen (18.11.2026, Demo-Mandant, lokaler Build von 0.6.0 mit dem echten Objektspeicher): (A) `person/create` nur mit `company` (dazu `bankAccounts` und `vatUid`) wird angenommen, die Person trägt kein `firstName` und kein `lastName`, `name` ist gleich `company`. (B) `prepare_file_upload` / `commit_file_upload` an einen Beleg mit vorhandenem Anhang: `fileIds` alt und neu, der alte Anhang bleibt; der PUT an `objectstorage.eu-zurich-1.oraclecloud.com` gab 200 mit gleichem MD5, `lastUpdated` des Belegs änderte sich. (C) `file/read` einer vorbereiteten, nicht festgehaltenen Datei nennt die Schreibadresse nicht (`isTemporary` true), `file/list` zeigt sie nicht. Ungemessen bleiben andere Regionen, Dateien nahe 10 MB am echten Speicher und Node 22 am echten Speicher. Der PUT mit dem echten `fetch` ist zusätzlich gegen einen lokalen Testserver geprüft (Node 24.22.1).
 
 Grenzen:
 

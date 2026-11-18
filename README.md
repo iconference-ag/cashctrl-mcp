@@ -253,7 +253,7 @@ Anhang an einem vorhandenen Beleg (auch an einem gebuchten).
 - **Grösse:** Im eigenen Prozess (`createToolset(...).call`) gilt die Grenze von 10 MB sauber: darüber kommt eine Fehlermeldung. Über die Standardeingabe (MCP) nimmt der Server Nachrichten bis 16 MiB (Base64 von 10 MiB plus JSON; das SDK gäbe 10 MiB vor, damit blieben PDF über rund 7,8 MB ohne Antwort). **Dateien über etwa 12 MB beenden die MCP-Verbindung über stdio, statt abgewiesen zu werden:** eine Nachricht über 16 MiB lässt das SDK den Transport schliessen (gemessen mit 17 MiB: der Server endet mit Exit 0). Eine Datei zwischen 10 und 12 MB weist der Server mit Fehlermeldung ab.
 - **Offene Vorschauen:** Der eingebaute Token-Speicher hält höchstens 3 gleichzeitig offene Upload-Vorschauen mit Datei (`inhalt`; eine Vorschau mit blosser `fileId` zählt nicht), gemeinsam über alle Organisationen; eine vierte wird abgewiesen («Zu viele offene Upload-Vorschauen; erst ausführen oder 10 Minuten warten.»). Abgelaufene werden vorher weggeräumt. Gemessen im eigenen Prozess mit einer Datei von 10 MiB (Node 24.22.1, Attrappe für `fetch`): Prozessspeicher 72 MiB vor prepare, 116 MiB danach, 144 MiB nach commit (zugleich die Spitze); in einem weiteren Lauf des Prüfers 184 MiB. **Über stdio (Claude Desktop, `npx`) kann eine Datei von 10 MB den Speicher des Servers auf rund 1 GB treiben (gemessen 854 bis 1048 MiB RSS für eine einzige Vorschau, an `dist/index.js`); im eigenen Prozess rund 144 bis 184 MiB.** Die Ursache über stdio ist nicht gemessen (vermutlich der Lesepuffer des SDK).
 - **Grenzen der Prüfung:** Die Host-Prüfung unterscheidet keine Oracle-Kunden; sie schützt nur vor Hosts ausserhalb von `objectstorage.<region>.oraclecloud.com`. Zwischen `order/read` und `order/update_attachments` kann ein gleichzeitig gesetzter Anhang verloren gehen; CashCtrl kennt kein bedingtes Schreiben. Wer dem Werkzeugsatz ein eigenes `fetchImpl` übergibt, sieht die `writeUrl` im Klartext und darf sie nicht protokollieren.
-- Gemessen ist der Ablauf in CashCtrl (Demo-Mandant, 18.11.2026), das Werkzeug selbst nur gegen Attrappen.
+- Gemessen ist der Ablauf in CashCtrl und das Werkzeug selbst (Demo-Mandant, 18.11.2026, echter Objektspeicher; Näheres unter «Entwicklung»).
 
 ### Allgemeine Werkzeuge (0.4.0, experimentell)
 
@@ -278,7 +278,7 @@ allgemeine Weg ist für den Rest.
   Fachprüfung des Servers (Rundung, Steuer, Dubletten), am Mandanten nicht gemessen.» Beim Löschen kommt «Löschen ist
   unumkehrbar.» dazu.
 - Listen für CSV-Parameter (`ids`, `orderIds` …) darf das Modell als Liste angeben; der Server verbindet sie mit Komma.
-- Regel «eines von» (0.6.0): bei `person/create.json` und `person/update.json` genügt eines von `company`, `firstName`, `lastName`. Laut Doku von CashCtrl gilt «Either firstName, lastName or company must be set»; am Mandanten noch nicht gemessen. `api_catalog` zeigt das als `einesVon`.
+- Regel «eines von» (0.6.0): bei `person/create.json` und `person/update.json` genügt eines von `company`, `firstName`, `lastName`. Laut Doku von CashCtrl gilt «Either firstName, lastName or company must be set»; am 18.11.2026 am Demo-Mandanten gemessen: `person/create` nur mit `company` wird angenommen (die Person trägt dann kein `firstName` und kein `lastName`, `name` ist gleich `company`). `api_catalog` zeigt das als `einesVon`.
 - `file/prepare.json` weist der allgemeine Schreibweg ab (0.6.0): die Antwort trüge die Upload-Adresse ins Modell. Für Uploads `prepare_file_upload` verwenden.
 
 Bei einem Fehler enthält die Antwort neben dem Text `structuredContent` mit `kind` (Art des
@@ -365,7 +365,7 @@ Restzahlung (09.11.2026). **Ungeprüft ist `send_order`:** Unser Demo-Mandant l�
 Werkzeug läuft nur unter Unit-Tests gegen aufgezeichnete Antworten. Wer es einsetzt, prüft das Ergebnis in
 CashCtrl nach.
 
-**Ungeprüft ist `file_upload`** (0.6.0): der Ablauf in CashCtrl ist am 18.11.2026 am Demo-Mandanten gemessen, das Werkzeug läuft nur unter Unit-Tests gegen Attrappen. Der PUT mit dem echten `fetch` ist gegen einen lokalen Testserver geprüft (Node 24.22.1: kein `Authorization`, kein `Content-Type`, `Content-Length` gesetzt, 302 wird nicht verfolgt), nicht gegen den Objektspeicher.
+**Gemessen ist `file_upload`** (0.6.0), am 18.11.2026 am Demo-Mandanten mit dem lokalen Build und dem echten Objektspeicher: Upload an einen Beleg, der schon einen Anhang trug. `fileIds` enthielt alt und neu, der alte Anhang blieb; der PUT an `objectstorage.eu-zurich-1.oraclecloud.com` gab 200 mit gleichem MD5, und `lastUpdated` des Belegs änderte sich. Auch `file/read` einer vorbereiteten, nicht festgehaltenen Datei gibt die Schreibadresse nicht heraus (kein Feld mit «Url», `isTemporary` ist true; `file/list` zeigt vorübergehende Dateien nicht). **Weiter ungemessen:** andere Regionen als `eu-zurich-1`, Dateien nahe 10 MB am echten Speicher und Node 22 am echten Speicher. Der PUT mit dem echten `fetch` ist ausserdem gegen einen lokalen Testserver geprüft (Node 24.22.1: kein `Authorization`, kein `Content-Type`, `Content-Length` gesetzt, 302 wird nicht verfolgt).
 
 Vom allgemeinen Schreibweg (`prepare_api_write` / `commit_api_write`) sind vier Lösch-Endpunkte gemessen
 (`inventory/article/delete`, `journal/delete`, `person/delete`, `order/bookentry/delete`, 09.11.2026). Alle
